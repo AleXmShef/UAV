@@ -91,7 +91,7 @@ PLUGIN_API void XPluginDisable(void) { }
 PLUGIN_API int  XPluginEnable(void)  { return 1; }
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, int inMsg, void * inParam) { }
 
-void	draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
+void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
 {
     // Mandatory: We *must* set the OpenGL state before drawing
     // (we can't make any assumptions about it)
