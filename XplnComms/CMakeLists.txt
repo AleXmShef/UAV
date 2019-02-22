@@ -1,22 +1,27 @@
 add_compile_definitions(IBM=1)
 
-include_directories("../X-Plane SDK/CHeaders/Widgets"
-                    "../X-Plane SDK/CHeaders/XPLM"
-                    "../X-Plane SDK/CHeaders/Wrappers"
-                    )
+include_directories(
+        "../X-Plane SDK/CHeaders/Widgets"
+        "../X-Plane SDK/CHeaders/XPLM"
+        "../X-Plane SDK/CHeaders/Wrappers"
+)
 
 set(SOURCE_FILES Source/Example.cpp)
 
-add_library(Test ${SOURCE_FILES})
+link_directories("${CMAKE_BINARY_DIR}/../X-Plane SDK/Libraries/Win")
+
+add_library(XplnComms SHARED ${SOURCE_FILES})
 set_target_properties(
-        Test
+        XplnComms
         PROPERTIES
             PREFIX ""
             OUTPUT_NAME "Win"
             SUFFIX ".xpl"
 )
 
-link_libraries(Test "../X-Plane SDK/Libraries/Win/XPLM_64.lib"
-                            "../X-Plane SDK/Libraries/Win/XPWidgets_64.lib"
-                        )
+target_link_libraries(
+        XplnComms XPLM_64.lib
+        XPWidgets_64.lib
+        OpenGL32.lib
+)
 
