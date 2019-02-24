@@ -6,7 +6,7 @@
 #include "XPLMGraphics.h"
 #include <string.h>
 
-#include "controls.h"
+#include "Guidance.h"
 #if IBM
     #include <windows.h>
     BOOL APIENTRY DllMain( HANDLE hModule,

@@ -2,6 +2,7 @@
 #define UAV_CONTROLS_H
 
 #include "XPLMDataAccess.h"
+#include "IPC.h"
 #include <vector>
 #include <string>
 #include <map>
@@ -9,7 +10,6 @@
 namespace UAV {
     class Guidance {
     public:
-        Guidance();
         static Guidance* GetInstance();
 
         void Update();
@@ -17,8 +17,13 @@ namespace UAV {
         ~Guidance();
 
     private:
-        std::map<XPLMDataRef, std::string>* mDataRefs;
+        Guidance();
+        std::map<std::string, XPLMDataRef>* mDataRefs;
+        std::vector<std::string> mODataRefsTypes;
+        std::vector<std::string> mIDataRefsTypes;
         static Guidance* mInstance;
+        IPCSharedMap* mOutputMap;
+        IPCSharedMap* mInputMap;
     };
 }
 

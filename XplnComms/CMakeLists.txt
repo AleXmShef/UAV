@@ -7,7 +7,7 @@ include_directories(
         "../X-Plane SDK/CHeaders/Wrappers"
 )
 
-set(SOURCE_FILES Source/main.cpp Source/controls.cpp Source/PID.cpp Source/IPC.cpp)
+set(SOURCE_FILES Source/main.cpp Source/Guidance.cpp Source/IPC.cpp)
 
 link_directories("${CMAKE_BINARY_DIR}/../X-Plane SDK/Libraries/Win")
 
