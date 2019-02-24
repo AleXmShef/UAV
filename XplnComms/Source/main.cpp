@@ -5,23 +5,25 @@
 #include "XPLMDisplay.h"
 #include "XPLMGraphics.h"
 #include <string.h>
+
+#include "controls.h"
 #if IBM
-#include <windows.h>
-BOOL APIENTRY DllMain( HANDLE hModule,
-                       DWORD ul_reason_for_call,
-                       LPVOID lpReserved
-)
-{
-    switch (ul_reason_for_call)
+    #include <windows.h>
+    BOOL APIENTRY DllMain( HANDLE hModule,
+                           DWORD ul_reason_for_call,
+                           LPVOID lpReserved
+    )
     {
-        case DLL_PROCESS_ATTACH:
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-        case DLL_PROCESS_DETACH:
-            break;
+        switch (ul_reason_for_call)
+        {
+            case DLL_PROCESS_ATTACH:
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+            case DLL_PROCESS_DETACH:
+                break;
+        }
+        return TRUE;
     }
-    return TRUE;
-}
 #endif
 #if LIN
 #include <GL/gl.h>

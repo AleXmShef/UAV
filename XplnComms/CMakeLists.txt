@@ -1,4 +1,5 @@
 add_compile_definitions(IBM=1)
+#add_compile_definitions(SHRDMEM_NAME = "XcommsSharedMemory")
 
 include_directories(
         "../X-Plane SDK/CHeaders/Widgets"
@@ -6,7 +7,7 @@ include_directories(
         "../X-Plane SDK/CHeaders/Wrappers"
 )
 
-set(SOURCE_FILES Source/Example.cpp)
+set(SOURCE_FILES Source/main.cpp Source/controls.cpp Source/PID.cpp Source/IPC.cpp)
 
 link_directories("${CMAKE_BINARY_DIR}/../X-Plane SDK/Libraries/Win")
 
