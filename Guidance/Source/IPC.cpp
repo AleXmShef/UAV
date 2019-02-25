@@ -8,9 +8,8 @@ ShmemAllocator* IPC::_alloc_inst;
 
 IPC::IPC() {
     //create shared memory object & mapped region
-    shared_memory_object::remove(SHRDMEM_NAME);
-    _segment = new managed_shared_memory(create_only, SHRDMEM_NAME, 16355);
-    _alloc_inst = new ShmemAllocator(_segment->get_segment_manager());
+    _segment = new managed_shared_memory(open_only, SHRDMEM_NAME);
+    //_alloc_inst = new ShmemAllocator(_segment->get_segment_manager());
     //log maybe?
 }
 
