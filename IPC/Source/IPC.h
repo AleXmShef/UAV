@@ -8,7 +8,7 @@
 
 using namespace boost::interprocess;
 
-namespace UAV {
+namespace IPCns {
     //Typedefing STL-like map container-----------------------------------------------------------
     typedef int KeyType;
     typedef float MappedType;

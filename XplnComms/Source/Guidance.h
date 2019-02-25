@@ -22,8 +22,8 @@ namespace UAV {
         std::vector<std::string> mODataRefsTypes;
         std::vector<std::string> mIDataRefsTypes;
         static Guidance* mInstance;
-        IPCSharedMap* mOutputMap;
-        IPCSharedMap* mInputMap;
+        IPCns::IPCSharedMap* mOutputMap;
+        IPCns::IPCSharedMap* mInputMap;
     };
 }
 
