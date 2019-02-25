@@ -13,12 +13,13 @@ int main() {
 
     while(1) {
         phi+= 0.01;
-        x = cos(phi)*10;
-        y = sin(phi)*10;
+        x = cos(phi)*50;
+        y = sin(phi)*50;
         imap->at(LeftAil) = x;
         imap->at(RightAil) = -x;
         imap->at(LeftElev) = y;
         imap->at(RightElev) = y;
+        imap->at(Rudder) = y;
         Sleep(1);
     }
 

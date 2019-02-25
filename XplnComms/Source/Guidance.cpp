@@ -83,20 +83,20 @@ void Guidance::Update() {
                 for (int i = 0; i < 23; i++) {
                     arr[i] = mInputMap->at(j);
                 }
-                XPLMSetDatavf(mDataRefs->at("Pitch"), arr, 0, 1);
+                XPLMSetDatavf(mDataRefs->at("Pitch"), arr, 8, 9);
                 break;
             case 4:
                 for (int i = 0; i < 23; i++) {
                     arr[i] = mInputMap->at(j);
                 }
-                XPLMSetDatavf(mDataRefs->at("Pitch"), arr, 1, 2);
+                XPLMSetDatavf(mDataRefs->at("Pitch"), arr, 9, 10);
                 break;
             case 5:
                 for (int i = 0; i < 23; i++) {
                     arr[i] = mInputMap->at(j);
                 }
-                XPLMSetDatavf(mDataRefs->at("Yaw"), arr, 0, 1);
-                XPLMSetDatavf(mDataRefs->at("Yaw"), arr, 1, 2);
+                XPLMSetDatavf(mDataRefs->at("Yaw"), arr, 10, 11);
+                XPLMSetDatavf(mDataRefs->at("Yaw"), arr, 11, 12);
                 break;
             default:
                 break;
