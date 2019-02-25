@@ -3,8 +3,6 @@
 using namespace UAV;
 
 Guidance* Guidance::mInstance = nullptr;
-std::map<Axes, PIDPipeline*> Guidance::mPIDpipelines;
-std::map<DataMaps, IPCns::IPCSharedMap*> Guidance::mDataMaps;
 
 Guidance* Guidance::GetInstance() {
     if(mInstance==nullptr) {
@@ -27,6 +25,8 @@ void Guidance::Init() {
     IPCns::IPC::findData(mDataMaps.at(SimData), SHRDOUTPUT_NAME);     //Inverted
 
     //Lock controls
+    mDataMaps.at(SimData)->at(ControlOverride) = 1;
+    mDataMaps.at(SimData)->at(ControlSrfcOverride) = 1;
 }
 
 void Guidance::Update() {

@@ -8,19 +8,20 @@
 
 namespace UAV {
     enum Axes{X, Y};
-    enum PipelinePIDs{AOApid, AngVelPID, AngAccPID};
+    enum PipelinePIDs{AoAPID, AngVelPID, AngAccPID};
     enum DataMaps{SimData, ControlsData};
 
     class Guidance {
     public:
         static Guidance* GetInstance();
-        static void Init();
-        static void Update();
-        static void MasterSwitch(bool flag);     //FIXME: temporary
+        void Update();
+        void MasterSwitch(bool flag);     //FIXME: temporary
     private:
+        void Init();
+
         static Guidance* mInstance;
-        static std::map<Axes, PIDPipeline*> mPIDpipelines;
-        static std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
+        std::map<Axes, PIDPipeline*> mPIDpipelines;
+        std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
     };
 }
 
