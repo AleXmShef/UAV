@@ -96,7 +96,7 @@ PLUGIN_API int XPluginStart(
     XPLMSetWindowResizingLimits(g_window, 200, 200, 300, 300);
     XPLMSetWindowTitle(g_window, "Sample Window");
 
-    UAV::Guidance::GetInstance();
+    XCOM::Guidance::GetInstance();
 
     return g_window != NULL;
 }
@@ -117,7 +117,7 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
     // Mandatory: We *must* set the OpenGL state before drawing
     // (we can't make any assumptions about it)
 
-    UAV::Guidance::GetInstance()->Update();
+    XCOM::Guidance::GetInstance()->Update();
 
     XPLMSetGraphicsState(
             0 /* no fog */,

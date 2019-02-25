@@ -1,13 +1,15 @@
 #ifndef UAV_CONTROLS_H
 #define UAV_CONTROLS_H
 
-#include "XPLMDataAccess.h"
-#include "IPC.h"
 #include <vector>
 #include <string>
 #include <map>
+#include "enums.h"
+#include "XPLMDataAccess.h"
+#include "IPC.h"
 
-namespace UAV {
+namespace XCOM {
+    enum ControlsEnum{ControlPitch, ControlRoll, ControlYaw, ControlThrottle};
     class Guidance {
     public:
         static Guidance* GetInstance();
@@ -18,7 +20,9 @@ namespace UAV {
 
     private:
         Guidance();
-        std::map<std::string, XPLMDataRef>* mDataRefs;
+
+        std::map<SimDataEnum, XPLMDataRef>* mODataRefs;
+        std::map<ControlsEnum, XPLMDataRef>* mIDataRefs;
         std::vector<std::string> mODataRefsTypes;
         std::vector<std::string> mIDataRefsTypes;
         static Guidance* mInstance;

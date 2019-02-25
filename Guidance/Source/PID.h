@@ -4,8 +4,9 @@
 namespace UAV {
     class PID {
     public:
+        PID(){};
         PID(double dt, double max, double min, double Kp, double Kd, double Ki);
-        float calculate(double setpoint, double pv);
+        double calculate(double setpoint, double pv);
     public:
         double _dT = 0.1;
         double _max = 1;

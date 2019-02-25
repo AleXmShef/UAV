@@ -11,7 +11,7 @@ PID::PID(double dt, double max, double min, double Kp, double Kd, double Ki):
         _Ki(Ki)
 {}
 
-float PID::calculate(double setpoint, double pv) {
+double PID::calculate(double setpoint, double pv) {
 
     //Calculate error
     double error = setpoint - pv;
@@ -37,5 +37,7 @@ float PID::calculate(double setpoint, double pv) {
         output = _min;
 
     _prev_err = error;
+
+    return output;
 }
 
