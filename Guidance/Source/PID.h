@@ -9,8 +9,8 @@ namespace UAV {
         double calculate(double setpoint, double pv);
     public:
         double _dT = 0.1;
-        double _max = 1;
-        double _min = 0;
+        double _max = 10;
+        double _min = -10;
         double _Kp = 1;
         double _Ki = 0.5;
         double _Kd = 0.1;

@@ -18,7 +18,7 @@ namespace UAV {
         void MasterSwitch(bool flag);     //FIXME: temporary
     private:
         void Init();
-
+        Guidance();
         static Guidance* mInstance;
         std::map<Axes, PIDPipeline*> mPIDpipelines;
         std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;

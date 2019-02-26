@@ -10,7 +10,6 @@ Guidance::Guidance() {
     mIDataRefs = new std::map<ControlsEnum, XPLMDataRef>;
     mODataRefs = new std::map<SimDataEnum, XPLMDataRef>;
 
-    //IMPORTANT: change these to individual cntrl srfces
     mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
     mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
     mIDataRefs->insert({ControlYaw, XPLMFindDataRef("sim/flightmodel2/wing/rudder1_deg")});       //rudder
@@ -20,7 +19,25 @@ Guidance::Guidance() {
     mODataRefs->insert({Longitude, XPLMFindDataRef("sim/flightmodel/position/longitude")});        //longitude
     mODataRefs->insert({Pitch, XPLMFindDataRef("sim/flightmodel/position/true_theta")});           //pitch
     mODataRefs->insert({Roll, XPLMFindDataRef("sim/flightmodel/position/true_phi")});              //roll
-    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
+    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/true_phi")});              //heading
+    mODataRefs->insert({Altitude, XPLMFindDataRef("sim/flightmodel/position/elevation")});            //heading
+    mODataRefs->insert({Velocity, XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed")});            //heading
+    mODataRefs->insert({PitchAoA, XPLMFindDataRef("sim/flightmodel/position/alpha")});            //heading
+    mODataRefs->insert({YawAoA, XPLMFindDataRef("sim/flightmodel/position/beta")});            //heading
+    mODataRefs->insert({VerticalPath, XPLMFindDataRef("sim/flightmodel/position/vpath")});            //heading
+    mODataRefs->insert({HorizontalPath, XPLMFindDataRef("sim/flightmodel/position/hpath")});            //heading
+    mODataRefs->insert({PitchAngVel, XPLMFindDataRef("sim/flightmodel/position/Q")});            //heading
+    mODataRefs->insert({RollAngVel, XPLMFindDataRef("sim/flightmodel/position/P")});            //heading
+    mODataRefs->insert({YawAngVel, XPLMFindDataRef("sim/flightmodel/position/R")});            //heading
+    mODataRefs->insert({PitchAngAcc, XPLMFindDataRef("sim/flightmodel/position/Q_dot")});            //heading
+    mODataRefs->insert({RollAngAcc, XPLMFindDataRef("sim/flightmodel/position/P_dot")});            //heading
+    mODataRefs->insert({YawAngAcc, XPLMFindDataRef("sim/flightmodel/position/R_dot")});
+//    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
+//    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
+//    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
+
+
+
     mODataRefs->insert({ControlOverride, XPLMFindDataRef("sim/operation/override/override_flightcontrol")});       //flag to override flight controls
     mODataRefs->insert({ControlSrfcOverride, XPLMFindDataRef("sim/operation/override/override_control_surfaces")});       //flag to override control surfaces
 
