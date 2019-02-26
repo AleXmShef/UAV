@@ -8,6 +8,8 @@ include_directories(
 )
 
 set(SOURCE_FILES Source/main.cpp Source/Guidance.cpp ../IPC/Source/IPC.cpp)
+set(GCC_COVERAGE_COMPILE_FLAGS "-Wwrite-strings")
+add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
 link_directories("${CMAKE_BINARY_DIR}/../X-Plane SDK/Libraries/Win")
 

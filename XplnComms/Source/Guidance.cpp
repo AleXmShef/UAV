@@ -30,11 +30,12 @@ Guidance::Guidance() {
     mOutputMap = IPC::registerData(mOutputMap, SHRDOUTPUT_NAME);
     mInputMap = IPC::registerData(mInputMap, SHRDINPUT_NAME);
 
-    for(int i = 0; i < mODataRefsTypes.size(); i++) {
+    //FUCKING ENUMS
+    for(int i = 0; i < ControlSrfcOverride + 1; i++) {
         mOutputMap->insert(std::pair<const int, float>(i, 0));
     }
 
-    for(int i = 0; i < mIDataRefsTypes.size(); i++) {
+    for(int i = 0; i < Rudder + 1; i++) {
         mInputMap->insert(std::pair<const int, float>(i, 0));
     }
 
@@ -51,8 +52,9 @@ Guidance* Guidance::GetInstance() {
 
 void Guidance::Update() {
     //Update flags
-    XPLMSetDataf(mODataRefs->at(ControlOverride), mOutputMap->at(ControlOverride));
-    XPLMSetDataf(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
+    //FUCKING GRAVE, IM OUT
+    XPLMSetDatai(mODataRefs->at(ControlOverride), mOutputMap->at(ControlOverride));
+    XPLMSetDatai(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
     //Update flight params
     for(int i = 0; i < ControlSrfcOverride; i++) {
         mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum)i));
@@ -60,40 +62,30 @@ void Guidance::Update() {
 
     //Update flight controls
     //See mIDatarefsTypes for switch reference
-    float* arr = new float[23];
-    for(int j = 0; j < 5; j++) {
+    auto arr = new float[1];
+    for(int j = 0; j < 6; j++) {
         switch(j) {
             case Throttle:
                 XPLMSetDataf(mIDataRefs->at(ControlThrottle), mInputMap->at(Throttle));
                 break;
             case LeftAil:
-                for (int i = 0; i < 23; i++) {
-                    arr[i] = mInputMap->at(LeftAil);
-                }
+                arr[0] = mInputMap->at(LeftAil);
                 XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 0, 1);
                 break;
             case RightAil:
-                for (int i = 0; i < 23; i++) {
-                    arr[i] = mInputMap->at(RightAil);
-                }
+                arr[0] = mInputMap->at(RightAil);
                 XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 1, 2);
                 break;
             case LeftElev:
-                for (int i = 0; i < 23; i++) {
-                    arr[i] = mInputMap->at(LeftElev);
-                }
+                arr[0] = mInputMap->at(LeftElev);
                 XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 8, 9);
                 break;
             case RightElev:
-                for (int i = 0; i < 23; i++) {
-                    arr[i] = mInputMap->at(RightElev);
-                }
+                arr[0] = mInputMap->at(RightElev);
                 XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 9, 10);
                 break;
             case Rudder:
-                for (int i = 0; i < 23; i++) {
-                    arr[i] = mInputMap->at(Rudder);
-                }
+                arr[0] = mInputMap->at(Rudder);
                 XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 10, 11);
                 XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 11, 12);
                 break;
