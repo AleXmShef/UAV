@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <thread>
 #include "enums.h"
 #include "XPLMDataAccess.h"
 #include "IPC.h"
@@ -16,7 +17,11 @@ namespace XCOM {
 
         void Update();
 
+        std::thread* GetThread();
+
         ~Guidance();
+
+        std::thread* mThread;
 
     private:
         Guidance();
@@ -28,6 +33,7 @@ namespace XCOM {
         static Guidance* mInstance;
         IPCns::IPCSharedMap* mOutputMap;
         IPCns::IPCSharedMap* mInputMap;
+
     };
 }
 

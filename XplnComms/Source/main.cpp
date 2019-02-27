@@ -8,6 +8,8 @@
 #include "Guidance.h"
 #include <string.h>
 #include "stdio.h"
+//#include <boost/thread/thread.hpp>
+#include <thread>
 
 #include "Guidance.h"
 #if IBM
@@ -140,7 +142,13 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
     XPLMDrawString(col_white, l + 10, t - 20, "Hello World", NULL, xplmFont_Proportional);
 }
 
-float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon) {
+void DataUpdateFunction() {
     XCOM::Guidance::GetInstance()->Update();
+}
+
+float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon) {
+//    XCOM::Guidance::GetInstance()->GetThread()->join();
+//    XCOM::Guidance::GetInstance()->mThread = new std::thread(DataUpdateFunction);
+    DataUpdateFunction();
     return -1.0;
 }

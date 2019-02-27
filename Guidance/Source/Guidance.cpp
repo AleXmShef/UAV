@@ -76,7 +76,7 @@ void Guidance::Update() {
     XaxisErrors.push_back(mDataMaps.at(SimData)->at(PitchAngVel));
     XaxisErrors.push_back(mDataMaps.at(SimData)->at(PitchAngAcc));
 
-    YaxisErrors.push_back(mDataMaps.at(SimData)->at(YawAngVel));
+    YaxisErrors.push_back(mDataMaps.at(SimData)->at(Roll));
     YaxisErrors.push_back(mDataMaps.at(SimData)->at(YawAngAcc));
     YaxisErrors.push_back(mDataMaps.at(SimData)->at(RollAngVel));
     YaxisErrors.push_back(mDataMaps.at(SimData)->at(RollAngAcc));

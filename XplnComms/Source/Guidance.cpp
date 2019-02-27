@@ -59,7 +59,6 @@ Guidance::Guidance() {
         mInputMap->insert(std::pair<const int, float>(i, 0));
     }
 
-
 }
 
 Guidance* Guidance::GetInstance() {
@@ -75,7 +74,7 @@ void Guidance::Update() {
 
     //Update flight controls
     //See mIDatarefsTypes for switch reference
-    auto arr = new float[1];
+    auto arr = new float[15];
     for (int j = 0; j < 6; j++) {
         switch (j) {
             case Throttle:
@@ -86,19 +85,20 @@ void Guidance::Update() {
                 XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 0, 1);
                 break;
             case RightAil:
-                arr[0] = mInputMap->at(RightAil);
+                arr[1] = mInputMap->at(RightAil);
                 XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 1, 2);
                 break;
             case LeftElev:
-                arr[0] = mInputMap->at(LeftElev);
+                arr[8] = mInputMap->at(LeftElev);
                 XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 8, 9);
                 break;
             case RightElev:
-                arr[0] = mInputMap->at(RightElev);
+                arr[9] = mInputMap->at(RightElev);
                 XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 9, 10);
                 break;
             case Rudder:
-                arr[0] = mInputMap->at(Rudder);
+                arr[10] = mInputMap->at(Rudder);
+                arr[11] = mInputMap->at(Rudder);
                 XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 10, 11);
                 XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 11, 12);
                 break;
@@ -122,5 +122,9 @@ void Guidance::Update() {
 
 Guidance::~Guidance() {
     //destroy pids
+}
+
+std::thread* Guidance::GetThread() {
+    return mThread;
 }
 
