@@ -22,15 +22,16 @@ namespace IPCns {
     public:
         static IPC* GetInstance();
         ~IPC();
+
         static IPCSharedMap* registerData(IPCSharedMap* Dptr, char* Dname);
         static IPCSharedMap* findData(IPCSharedMap* Dptr, char* Dname);
         static void lock();
         static void unlock();
         //static IPCSharedMap* unregisterData(IPCSharedMap* Dptr);
-        //struct 1 - outgoing data
-        //struct 2 - incoming data
+
     private:
         IPC();
+
         static managed_shared_memory* _segment;
         static interprocess_mutex* _mutex;
         static ShmemAllocator* _alloc_inst;

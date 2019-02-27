@@ -1,7 +1,9 @@
 #ifndef UAV_PIDPIPELINE_H
 #define UAV_PIDPIPELINE_H
+
 #include "PID.h"
 #include <vector>
+
 namespace UAV {
     class PIDPipeline {
     public:

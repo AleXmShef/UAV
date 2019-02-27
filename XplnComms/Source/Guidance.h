@@ -17,23 +17,17 @@ namespace XCOM {
 
         void Update();
 
-        std::thread* GetThread();
-
         ~Guidance();
-
-        std::thread* mThread;
 
     private:
         Guidance();
 
         std::map<SimDataEnum, XPLMDataRef>* mODataRefs;
         std::map<ControlsEnum, XPLMDataRef>* mIDataRefs;
-        std::vector<std::string> mODataRefsTypes;
-        std::vector<std::string> mIDataRefsTypes;
-        static Guidance* mInstance;
         IPCns::IPCSharedMap* mOutputMap;
         IPCns::IPCSharedMap* mInputMap;
 
+        static Guidance* mInstance;
     };
 }
 

@@ -4,7 +4,7 @@ Project(UAV CXX)
 
 add_compile_definitions(SHRDMEM_NAME="XcommsSharedMemory" SHRDOUTPUT_NAME="XcommsOutputData" SHRDINPUT_NAME="XcommsInputData")
 
-include_directories("C:/Program Files/MinGW/include" "IPC/Source")
+include_directories("C:/Program Files/boost_1_69_0" "IPC/Source")
 
 
 

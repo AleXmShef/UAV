@@ -14,6 +14,7 @@
 #include "Guidance.h"
 #if IBM
     #include <windows.h>
+    #include <GL/gl.h>
     BOOL APIENTRY DllMain( HANDLE hModule,
                            DWORD ul_reason_for_call,
                            LPVOID lpReserved
@@ -33,16 +34,13 @@
 #if LIN
 #include <GL/gl.h>
 #elif __GNUC__
-#include <GL/gl.h>
-#include <XPLMDisplay.h>
 
 #else
 #include <GL/gl.h>
 #endif
 
-
-#ifndef XPLM300
-#error This is made to be compiled against the XPLM300 SDK
+#ifndef XPLM301
+#error This is made to be compiled against the XPLM301 SDK
 #endif
 
 // An opaque handle to the window we will create
