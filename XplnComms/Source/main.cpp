@@ -3,6 +3,7 @@
 #define XPLM210
 #define XPLM200
 #include "XPLMDisplay.h"
+#include "XPLMProcessing.h"
 #include "XPLMGraphics.h"
 #include "Guidance.h"
 #include <string.h>
@@ -51,6 +52,7 @@ int					dummy_mouse_handler(XPLMWindowID in_window_id, int x, int y, int is_down
 XPLMCursorStatus	dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, int y, void * in_refcon) { return xplm_CursorDefault; }
 int					dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon) { return 0; }
 void				dummy_key_handler(XPLMWindowID in_window_id, char key, XPLMKeyFlags flags, char virtual_key, void * in_refcon, int losing_focus) { }
+float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon);
 
 PLUGIN_API int XPluginStart(
         char *		outName,
@@ -97,6 +99,7 @@ PLUGIN_API int XPluginStart(
     XPLMSetWindowTitle(g_window, "Sample Window");
 
     XCOM::Guidance::GetInstance();
+    XPLMRegisterFlightLoopCallback(DataUpdateCallback, -1.0, NULL);
 
     return g_window != NULL;
 }
@@ -117,7 +120,7 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
     // Mandatory: We *must* set the OpenGL state before drawing
     // (we can't make any assumptions about it)
 
-    XCOM::Guidance::GetInstance()->Update();
+
 
     XPLMSetGraphicsState(
             0 /* no fog */,
@@ -134,9 +137,10 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
 
     float col_white[] = {1.0, 1.0, 1.0}; // red, green, blue
 
-    float a = XPLMGetDataf(XPLMFindDataRef("sim/flightmodel/position/latitude"));
-    char buff[100];
-    sprintf(buff, "%f", a);
+    XPLMDrawString(col_white, l + 10, t - 20, "Hello World", NULL, xplmFont_Proportional);
+}
 
-    XPLMDrawString(col_white, l + 10, t - 20, buff, NULL, xplmFont_Proportional);
+float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon) {
+    XCOM::Guidance::GetInstance()->Update();
+    return -1.0;
 }

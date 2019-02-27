@@ -2,6 +2,7 @@
 #define UAV_IPC_H
 
 #include "boost/interprocess/managed_shared_memory.hpp"
+#include "boost/interprocess/sync/interprocess_mutex.hpp"
 #include "boost/interprocess/containers/map.hpp"
 #include <boost/interprocess/containers/string.hpp>
 #include "boost/interprocess/allocators/allocator.hpp"
@@ -24,12 +25,15 @@ namespace IPCns {
         ~IPC();
         static IPCSharedMap* registerData(IPCSharedMap* Dptr, char* Dname);
         static IPCSharedMap* findData(IPCSharedMap* Dptr, char* Dname);
+        static void lock();
+        static void unlock();
         //static IPCSharedMap* unregisterData(IPCSharedMap* Dptr);
         //struct 1 - outgoing data
         //struct 2 - incoming data
     private:
         IPC();
         static managed_shared_memory* _segment;
+        static interprocess_mutex* _mutex;
         static ShmemAllocator* _alloc_inst;
         static IPC* mInstance;
     };

@@ -10,9 +10,11 @@ Guidance::Guidance() {
     mIDataRefs = new std::map<ControlsEnum, XPLMDataRef>;
     mODataRefs = new std::map<SimDataEnum, XPLMDataRef>;
 
-    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
-    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
-    mIDataRefs->insert({ControlYaw, XPLMFindDataRef("sim/flightmodel2/wing/rudder1_deg")});       //rudder
+//    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
+//    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
+    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel/controls/elv1_def")});     //elevator
+    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel/controls/ail1_def")});     //ailerons
+    mIDataRefs->insert({ControlYaw, XPLMFindDataRef("sim/flightmodel2/wing/rudder1_deg")});       //rudderw
     mIDataRefs->insert({ControlThrottle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro_use")});          //engine throttle
 
     mODataRefs->insert({Latitude, XPLMFindDataRef("sim/flightmodel/position/latitude")});          //latitude
@@ -43,6 +45,7 @@ Guidance::Guidance() {
 
     //Initialize data maps
     shared_memory_object::remove(SHRDMEM_NAME);
+    shared_memory_object::remove("mtx");
     IPC::GetInstance();
     mOutputMap = IPC::registerData(mOutputMap, SHRDOUTPUT_NAME);
     mInputMap = IPC::registerData(mInputMap, SHRDINPUT_NAME);
@@ -68,20 +71,13 @@ Guidance* Guidance::GetInstance() {
 }
 
 void Guidance::Update() {
-    //Update flags
-    //FUCKING GRAVE, IM OUT
-    XPLMSetDatai(mODataRefs->at(ControlOverride), mOutputMap->at(ControlOverride));
-    XPLMSetDatai(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
-    //Update flight params
-    for(int i = 0; i < ControlSrfcOverride; i++) {
-        mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum)i));
-    }
+    IPC::lock();
 
     //Update flight controls
     //See mIDatarefsTypes for switch reference
     auto arr = new float[1];
-    for(int j = 0; j < 6; j++) {
-        switch(j) {
+    for (int j = 0; j < 6; j++) {
+        switch (j) {
             case Throttle:
                 XPLMSetDataf(mIDataRefs->at(ControlThrottle), mInputMap->at(Throttle));
                 break;
@@ -111,6 +107,17 @@ void Guidance::Update() {
         }
 
     }
+
+    //Update flags
+    //FUCKING GRAVE, IM OUT
+    XPLMSetDatai(mODataRefs->at(ControlOverride), mOutputMap->at(ControlOverride));
+    XPLMSetDatai(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
+    //Update flight params
+    for (int i = 0; i < 15; i++) {
+        mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum) i));
+    }
+
+    IPC::unlock();
 }
 
 Guidance::~Guidance() {

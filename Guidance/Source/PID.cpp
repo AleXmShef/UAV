@@ -2,6 +2,11 @@
 
 using namespace UAV;
 
+PID::PID(double max, double min):
+        _max(max),
+        _min(min)
+{}
+
 PID::PID(double dt, double max, double min, double Kp, double Kd, double Ki):
         _dT(dt),
         _max(max),
