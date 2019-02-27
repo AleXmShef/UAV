@@ -32,3 +32,9 @@ namespace XCOM {
 }
 
 #endif //UAV_CONTROLS_H
+
+/*TODO:
+ * Data output into the window
+ * Autopilot master switch via button
+ * Graphical PFD Display with flight directors
+ * */
