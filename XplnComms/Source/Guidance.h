@@ -16,7 +16,6 @@ namespace XCOM {
         static Guidance* GetInstance();
 
         void Update();
-
         ~Guidance();
 
     private:
