@@ -5,6 +5,7 @@
 #include "XPLMDisplay.h"
 #include "XPLMProcessing.h"
 #include "XPLMGraphics.h"
+#include "XPLMMenus.h"
 #include "Guidance.h"
 #include <string.h>
 #include "stdio.h"
@@ -53,6 +54,7 @@ XPLMCursorStatus	dummy_cursor_status_handler(XPLMWindowID in_window_id, int x, i
 int					dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, int clicks, void * in_refcon) { return 0; }
 void				dummy_key_handler(XPLMWindowID in_window_id, char key, XPLMKeyFlags flags, char virtual_key, void * in_refcon, int losing_focus) { }
 float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon);
+void MyMenuCallback();
 
 PLUGIN_API int XPluginStart(
         char *		outName,
@@ -98,8 +100,22 @@ PLUGIN_API int XPluginStart(
     XPLMSetWindowResizingLimits(g_window, 200, 200, 300, 300);
     XPLMSetWindowTitle(g_window, "Sample Window");
 
+    int gAcquireAircraftSubMenuItem = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "AcquireAircraft", 0, 1);
+    XPLMMenuID gAcquireAircraftMenu = XPLMCreateMenu("AcquireAircraft", XPLMFindPluginsMenu(), gAcquireAircraftSubMenuItem, MyMenuCallback, 0);
+    XPLMAppendMenuItem(gAcquireAircraftMenu, "Acquire Planes", 0, 1);
+    XPLMAppendMenuItem(gAcquireAircraftMenu, "Release Planes", 0, 1);
+    XPLMAppendMenuItem(gAcquireAircraftMenu, "Load Aircraft", 0, 1);
+
+
+
     XCOM::Guidance::GetInstance();
     XPLMRegisterFlightLoopCallback(DataUpdateCallback, -1.0, NULL);
+
+    //register menu
+    //register window for menu
+    //initialize guidance module
+    //button for menu
+    //button callback
 
     return g_window != NULL;
 }
