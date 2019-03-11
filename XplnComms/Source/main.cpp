@@ -307,12 +307,12 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
 
     float y = 100 - pitch;
 
-    float a = 54/cos(roll);
+    float a = 56/cos(roll);
     float c = a*sin(roll);
-    float grtl[] = {46*sc, (c + 100 - pitch)*sc};
-    float grbl[] = {46*sc, -25*sc};
-    float grtr[] = {154*sc, (100-pitch-c)*sc};
-    float grbr[] = {154*sc, -25*sc};
+    float grtl[] = {44*sc, (c + 100 - pitch)*sc};
+    float grbl[] = {44*sc, -25*sc};
+    float grtr[] = {156*sc, (100-pitch-c)*sc};
+    float grbr[] = {156*sc, -25*sc};
 
     glEnable(GL_SCISSOR_TEST);
     glScissor(l + mrbl[0], b+mrbl[1], mrbr[0] - mrbl[0], mrtr[1] - mrbr[1]);
@@ -347,6 +347,8 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
 
     }
     glEnd();
+
+    //Drawing flight directors
 
 
 

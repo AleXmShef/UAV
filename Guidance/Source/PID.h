@@ -13,8 +13,8 @@ namespace UAV {
         double _dT = 0.01;
         double _max = 10;
         double _min = -10;
-        double _Kp = 1;
-        double _Ki = 1;
+        double _Kp = 0.01;
+        double _Ki = 0.001;
         double _Kd = 0.1;
     private:
         double _prev_err = 0;

@@ -3,16 +3,31 @@
 #include <iostream>
 #include "IPC.h"
 #include "Guidance.h"
+#include <thread>
 
 
 using namespace UAV;
 
-int main() {
+bool flag = 1;
+
+void loop() {
     Guidance* mGuidance = Guidance::GetInstance();
 
-    while(1) {
+    while(flag) {
         mGuidance->Update();
     }
+}
+
+int main() {
+    std::thread MyThread(loop);
+    while(flag) {
+        int a;
+        std::cin >> a;
+        if(a) {
+            flag = false;
+        }
+    }
+    MyThread.join();
 
     return 0;
 }
