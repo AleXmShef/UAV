@@ -124,7 +124,3 @@ Guidance::~Guidance() {
     //destroy pids
 }
 
-std::thread* Guidance::GetThread() {
-    return mThread;
-}
-
