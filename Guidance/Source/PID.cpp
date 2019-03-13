@@ -1,4 +1,5 @@
 #include "PID.h"
+#include <math.h>
 
 using namespace UAV;
 
@@ -20,6 +21,8 @@ double PID::calculate(double setpoint, double pv) {
 
     //Calculate error
     double error = setpoint - pv;
+    if((abs(error)/error) != (abs(_prev_err)/_prev_err))
+        _integral = 0;
 
     //Proportional term
     double Pout = _Kp * error;

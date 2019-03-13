@@ -1,7 +1,8 @@
 #ifndef UAV_ENUMS_H
 #define UAV_ENUMS_H
 
-enum SimDataEnum{Latitude,
+enum SimDataEnum{
+        Latitude,
         Longitude,
         Pitch,
         Roll,
@@ -18,6 +19,8 @@ enum SimDataEnum{Latitude,
         PitchAngAcc,
         RollAngAcc,
         YawAngAcc,
+        VerticalVelocity,
+        Mass,
 
         //These must be at the end
         ControlOverride,
