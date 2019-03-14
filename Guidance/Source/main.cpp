@@ -38,4 +38,3 @@ int main() {
  * Coordinate system
  * Waypoint guidance
  * */
-

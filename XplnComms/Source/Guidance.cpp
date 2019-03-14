@@ -10,10 +10,10 @@ Guidance::Guidance() {
     mIDataRefs = new std::map<ControlsEnum, XPLMDataRef>;
     mODataRefs = new std::map<SimDataEnum, XPLMDataRef>;
 
-    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
-    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
-//    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel/controls/elv1_def")});     //elevator
-//    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel/controls/ail1_def")});     //ailerons
+//    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
+//    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
+    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel/controls/elv1_def")});     //elevator
+    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel/controls/ail1_def")});     //ailerons
     mIDataRefs->insert({ControlYaw, XPLMFindDataRef("sim/flightmodel2/wing/rudder1_deg")});       //rudderw
     mIDataRefs->insert({ControlThrottle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro_use")});          //engine throttle
 
