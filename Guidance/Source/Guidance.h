@@ -11,7 +11,7 @@
 namespace UAV {
     enum Axes{X, Y};
     enum PipelinePIDs{AoAPID, AngVelPID, AngAccPID};
-    enum DataMaps{SimData, ControlsData};
+    enum DataMaps{DerivedData, ControlsData};
 
     class Guidance {
     public:
@@ -22,11 +22,17 @@ namespace UAV {
     private:
         void Init();
         Guidance();
+
+        double GetCl(float Pitch);
+        double GetPitch(float Cl);
+
         float phi = 0;
-        time_t t = 0;
+        clock_t t = 0;
+        time_t t2 = 0;
         static Guidance* mInstance;
         std::map<Axes, PIDPipeline*> mPIDpipelines;
         std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
+        std::map<std::string, double> mValuesForCalculation;
     };
 }
 

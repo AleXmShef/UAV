@@ -55,6 +55,8 @@ int					dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, 
 void				dummy_key_handler(XPLMWindowID in_window_id, char key, XPLMKeyFlags flags, char virtual_key, void * in_refcon, int losing_focus) { }
 float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon);
 void MyMenuCallback(void* inMenuRef, void* inItemRef);
+void* PFDMenuItem;
+void* SwitchControlsMenuItem;
 
 PLUGIN_API int XPluginStart(
         char *		outName,
@@ -102,7 +104,8 @@ PLUGIN_API int XPluginStart(
 
     int my_slot = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "PFD Monitor", NULL, 0);
     XPLMMenuID m = XPLMCreateMenu("PFD Monitor", XPLMFindPluginsMenu(), my_slot, MyMenuCallback, NULL);
-    XPLMAppendMenuItem(m, "Show PFD", NULL, 0);
+    XPLMAppendMenuItem(m, "Show PFD", (void*)1, 0);
+    XPLMAppendMenuItem(m, "Switch Controls", (void*)2, 0);
 
     XCOM::Guidance::GetInstance();
     XPLMRegisterFlightLoopCallback(DataUpdateCallback, -1.0, NULL);
@@ -375,5 +378,10 @@ float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFligh
 }
 
 void MyMenuCallback(void* inMenuRef, void* inItemRef) {
-    XPLMSetWindowIsVisible(g_window, 1);
+    if (inItemRef == (void*)1) {
+        XPLMSetWindowIsVisible(g_window, 1);
+    }
+    else if (inItemRef == (void*)2) {
+        XCOM::Guidance::GetInstance()->SwitchControls();
+    }
 }

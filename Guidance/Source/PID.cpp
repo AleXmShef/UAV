@@ -1,3 +1,4 @@
+#include <cmath>
 #include "PID.h"
 
 using namespace UAV;
@@ -25,6 +26,8 @@ double PID::calculate(double setpoint, double pv) {
     double Pout = _Kp * error;
 
     //Integral term
+    if (fabs(error) < 0.001)
+        _integral = 0;
     _integral += error * _dT;
     double Iout = _Ki * _integral;
 
