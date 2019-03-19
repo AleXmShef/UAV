@@ -75,6 +75,7 @@ void Guidance::Update() {
     double Ftarget = sqrt(Fcenter*Fcenter+Flifttarget*Flifttarget);
     double qs = Flift/GetCl(mDataMaps.at(DerivedData)->at(PitchAoA));
     double DesiredAoA = 0.0001;
+
     DesiredAoA += GetPitch((float)(Ftarget/qs));
     double DesiredRoll = asin(Fcenter/Ftarget)*180/M_PI;
 
