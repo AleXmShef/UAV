@@ -7,15 +7,15 @@ Guidance* Guidance::mInstance = nullptr;
 
 Guidance::Guidance() {
     //find datarefs
-    mIDataRefs = new std::map<ControlsEnum, XPLMDataRef>;
+    mIDataRefs = new std::map<ControlsDataEnum, XPLMDataRef>;
     mODataRefs = new std::map<SimDataEnum, XPLMDataRef>;
 
-    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel2/wing/elevator1_deg")});     //elevator
-    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel2/wing/aileron1_deg")});     //ailerons
-//    mIDataRefs->insert({ControlPitch, XPLMFindDataRef("sim/flightmodel/controls/elv1_def")});     //elevator
-//    mIDataRefs->insert({ControlRoll, XPLMFindDataRef("sim/flightmodel/controls/ail1_def")});     //ailerons
-    mIDataRefs->insert({ControlYaw, XPLMFindDataRef("sim/flightmodel2/wing/rudder1_deg")});       //rudderw
-    mIDataRefs->insert({ControlThrottle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro_use")});          //engine throttle
+    mIDataRefs->insert({LeftElev, XPLMFindDataRef("sim/flightmodel/controls/hstab1_elv1def")});     //elevators
+    mIDataRefs->insert({RightElev, XPLMFindDataRef("sim/flightmodel/controls/hstab1_elv2def")});
+    mIDataRefs->insert({LeftAil, XPLMFindDataRef("sim/flightmodel/controls/wing2l_ail1def")});     //ailerons
+    mIDataRefs->insert({RightAil, XPLMFindDataRef("sim/flightmodel/controls/wing1l_ail1def")});
+    mIDataRefs->insert({Rudder, XPLMFindDataRef("sim/flightmodel/controls/vstab1_rud1def")});       //rudderw
+    mIDataRefs->insert({Throttle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro_use")});          //engine throttle
 
     mODataRefs->insert({Latitude, XPLMFindDataRef("sim/flightmodel/position/latitude")});          //latitude
     mODataRefs->insert({Longitude, XPLMFindDataRef("sim/flightmodel/position/longitude")});        //longitude
@@ -35,6 +35,7 @@ Guidance::Guidance() {
     mODataRefs->insert({RollAngAcc, XPLMFindDataRef("sim/flightmodel/position/P_dot")});            //heading
     mODataRefs->insert({YawAngAcc, XPLMFindDataRef("sim/flightmodel/position/R_dot")});
     mODataRefs->insert({VerticalVelocity, XPLMFindDataRef("sim/flightmodel/position/vh_ind_fpm")});
+    mODataRefs->insert({Mass, XPLMFindDataRef("sim/flightmodel/weight/m_total")});
 //    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
 //    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
 //    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
@@ -75,36 +76,34 @@ void Guidance::Update() {
 
     //Update flight controls
     //See mIDatarefsTypes for switch reference
-    auto arr = new float[15];
-    for(int i = 0; i < 15; i++) {
+    auto arr = new float[56];
+    for(int i = 0; i < 56; i++) {
         arr[i] = 0;
     }
     for (int j = 0; j < 6; j++) {
         switch (j) {
             case Throttle:
-                XPLMSetDataf(mIDataRefs->at(ControlThrottle), mInputMap->at(Throttle));
+                XPLMSetDataf(mIDataRefs->at(Throttle), mInputMap->at(Throttle));
                 break;
             case LeftAil:
                 arr[0] = mInputMap->at(LeftAil);
-                XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 0, 1);
+                XPLMSetDataf(mIDataRefs->at(LeftAil), arr[0]);
                 break;
             case RightAil:
                 arr[0] = mInputMap->at(RightAil);
-                XPLMSetDatavf(mIDataRefs->at(ControlRoll), arr, 1, 2);
+                XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
                 break;
             case LeftElev:
                 arr[0] = mInputMap->at(LeftElev);
-                XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 8, 9);
+                XPLMSetDataf(mIDataRefs->at(LeftElev), arr[0]);
                 break;
             case RightElev:
                 arr[0] = mInputMap->at(RightElev);
-                XPLMSetDatavf(mIDataRefs->at(ControlPitch), arr, 9, 10);
+                XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
                 break;
             case Rudder:
                 arr[0] = mInputMap->at(Rudder);
-                //arr[0] = mInputMap->at(Rudder);
-                XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 10, 11);
-                XPLMSetDatavf(mIDataRefs->at(ControlYaw), arr, 11, 12);
+                XPLMSetDataf(mIDataRefs->at(Rudder), arr[0]);
                 break;
             default:
                 break;
@@ -118,7 +117,7 @@ void Guidance::Update() {
     XPLMSetDatai(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
     //Update flight params
     for (int i = 0; i < ControlSrfcOverride - 1; i++) {
-        mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum) i));
+        mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum)i));
     }
 
     IPC::unlock();

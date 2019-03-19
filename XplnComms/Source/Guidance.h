@@ -10,7 +10,7 @@
 #include "IPC.h"
 
 namespace XCOM {
-    enum ControlsEnum{ControlPitch, ControlRoll, ControlYaw, ControlThrottle};
+    //enum ControlsEnum{LeftElev, RightElev, LeftAil, RightAil, Rudder, Throttle};
     class Guidance {
     public:
         static Guidance* GetInstance();
@@ -23,7 +23,7 @@ namespace XCOM {
         Guidance();
 
         std::map<SimDataEnum, XPLMDataRef>* mODataRefs;
-        std::map<ControlsEnum, XPLMDataRef>* mIDataRefs;
+        std::map<ControlsDataEnum, XPLMDataRef>* mIDataRefs;
         IPCns::IPCSharedMap* mOutputMap;
         IPCns::IPCSharedMap* mInputMap;
 

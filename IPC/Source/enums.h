@@ -18,7 +18,9 @@ enum SimDataEnum{Latitude,
         PitchAngAcc,
         RollAngAcc,
         YawAngAcc,
+        Mass,
         VerticalVelocity,
+
 
         //These must be at the end
         ControlOverride,
