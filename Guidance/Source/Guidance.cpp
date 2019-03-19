@@ -56,64 +56,115 @@ void Guidance::Init() {
 }
 
 void Guidance::Update() {
+    UpdateGuidance();
+}
 
+void Guidance::UpdateGuidance() {
     IPCns::IPC::lock();
 
+    //Get elapsed time since last iteration
     time_t CurTime;
     time(&CurTime);
     float dT = CurTime - t2;
 
+    //Get necessary current values
     double mass = mDataMaps.at(DerivedData)->at(Mass);
     double Vv = mDataMaps.at(DerivedData)->at(VerticalVelocity);
     double Vacc = (Vv - mValuesForCalculation.at("VerticalVelocity"))/dT;
     double Flift = mass*(9.81+Vacc);
-    double R = 4000;
-    double AccCenter = (mDataMaps.at(DerivedData)->at(Velocity)*mDataMaps.at(DerivedData)->at(Velocity))/(R*1.944);
-    AccCenter = 0;
-    double Fcenter = mass*AccCenter;
-    double Flifttarget = mass*9.81;
-    double Ftarget = sqrt(Fcenter*Fcenter+Flifttarget*Flifttarget);
-    double qs = Flift/GetCl(mDataMaps.at(DerivedData)->at(PitchAoA));
-    double DesiredAoA = 0.0001;
 
-    DesiredAoA += GetPitch((float)(Ftarget/qs));
-    double DesiredRoll = asin(Fcenter/Ftarget)*180/M_PI;
+    //Init target values
+    double DesiredVerticalVelocity = 0;
+    double DesiredCurveR = 0;
+    double DesiredAccCenter = 0;
+
+    //See what do we need to do depending on an autopilot setup
+    switch(LNAVmode) {
+        case HDGselect:
+            //Get desired angular velocity -> calculate desired AccCenter
+            break;
+        case RouteL:
+            //Get desired angular velocity -> calculate desired AccCenter ///Wind calculation HERE
+            break;
+        default:
+            break;
+    }
+    switch(VNAVmode) {
+        case ALThold:
+            DesiredVerticalVelocity = 0;
+            break;
+        case LVLCHNG:
+            //Claculate desired vertical velocity for level change
+            break;
+        case Vspeed:
+            DesiredVerticalVelocity = mAutopilotSettings.VSPD;
+            break;
+        case RouteV:
+            //climb&descent profiles
+            break;
+        default:
+            break;
+
+    }
+    //double R = 4000;
+    //double AccCenter = (mDataMaps.at(DerivedData)->at(Velocity)*mDataMaps.at(DerivedData)->at(Velocity))/(R*1.944);
+    //AccCenter = 0;
+    double DesiredFcenter = mass*DesiredAccCenter;
+    double DesiredFlift = mass*9.81;
+
+
+
+
+    double Ftarget = sqrt(DesiredFcenter*DesiredFcenter+DesiredFlift*DesiredFlift);
+    double qs = Flift/GetCl(mDataMaps.at(DerivedData)->at(PitchAoA));
+
+    double DesiredAoA = 0.0001;
+    DesiredAoA += GetPitch(Ftarget/qs);
+
+    double DesiredRoll = asin(DesiredFcenter/Ftarget)*180/M_PI;
 
     double DesiredPitch = 0.0001;
-    DesiredPitch += DesiredAoA + (asin(0/(mDataMaps.at(DerivedData)->at(Velocity)*101.269)))*180/M_PI;
+    DesiredPitch += DesiredAoA + (asin(DesiredVerticalVelocity/(mDataMaps.at(DerivedData)->at(Velocity)*101.269)))*180/M_PI;
 
     mValuesForCalculation.at("VerticalVelocity") = Vv;
 
-    std::vector<double> XaxisErrors;
-    std::vector<double> YaxisErrors;
+    //CalculateControls
+    std::vector<double> PitchAxisErrors;
+    std::vector<double> RollAxisErrors;
 
-    XaxisErrors.push_back(mDataMaps.at(DerivedData)->at(Pitch));
-    XaxisErrors.push_back(mDataMaps.at(DerivedData)->at(PitchAngVel)-mDataMaps.at(DerivedData)->at(YawAngVel)*sin(mDataMaps.at(DerivedData)->at(Roll)*M_PI/180));
+    PitchAxisErrors.push_back(mDataMaps.at(DerivedData)->at(Pitch));
+    PitchAxisErrors.push_back(mDataMaps.at(DerivedData)->at(PitchAngVel)-mDataMaps.at(DerivedData)->at(YawAngVel)*sin(mDataMaps.at(DerivedData)->at(Roll)*M_PI/180));
 
-    YaxisErrors.push_back(mDataMaps.at(DerivedData)->at(Roll));
-    YaxisErrors.push_back(mDataMaps.at(DerivedData)->at(RollAngVel));
+    RollAxisErrors.push_back(mDataMaps.at(DerivedData)->at(Roll));
+    RollAxisErrors.push_back(mDataMaps.at(DerivedData)->at(RollAngVel));
 
     //calculate PIDs
-    double Xcorr = 0;
-    double Ycorr = 0;
-    Xcorr = mPIDpipelines.at(X)->Calculate(DesiredPitch, XaxisErrors)/500;
-    Ycorr = mPIDpipelines.at(Y)->Calculate(DesiredRoll, YaxisErrors)/500;
+    double PitchCorr = 0;
+    double RollCorr = 0;
+    PitchCorr = mPIDpipelines.at(X)->Calculate(DesiredPitch, PitchAxisErrors)/500;
+    RollCorr = mPIDpipelines.at(Y)->Calculate(DesiredRoll, RollAxisErrors)/500;
 
     double arr[6] = {DesiredRoll, mDataMaps.at(DerivedData)->at(Roll), DesiredPitch, mDataMaps.at(DerivedData)->at(PitchAngVel)-mDataMaps.at(DerivedData)->at(YawAngVel)*sin(mDataMaps.at(DerivedData)->at(Roll)*M_PI/180), mDataMaps.at(DerivedData)->at(Pitch),
                      mDataMaps.at(DerivedData)->at(YawAngVel)};
     Guidance::Log(arr, 6, 0);
 
+    UpdateControls(PitchCorr, RollCorr);
+
+    IPCns::IPC::unlock();
+}
+
+void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
+
     //For testing purposes
 //    phi+=0.001;
 //    Xcorr = cos(phi);
 //    Ycorr = sin(phi);
-//    mDataMaps.at(ControlsData)->at(LeftAil) = Ycorr;      //Down
-//    mDataMaps.at(ControlsData)->at(RightAil) = Ycorr;     //Up
-//    mDataMaps.at(ControlsData)->at(LeftElev) = Xcorr;     //Up
-//    mDataMaps.at(ControlsData)->at(RightElev) = Xcorr;    //Up
+//    mDataMaps.at(ControlsData)->at(LeftAil) = RollCorr;      //Down
+//    mDataMaps.at(ControlsData)->at(RightAil) = RollCorr;     //Up
+//    mDataMaps.at(ControlsData)->at(LeftElev) = PitchCorr;     //Up
+//    mDataMaps.at(ControlsData)->at(RightElev) = PitchCorr;    //Up
 
-    //Update flight controls
-    mDataMaps.at(ControlsData)->at(LeftAil) += Ycorr;
+    mDataMaps.at(ControlsData)->at(LeftAil) += RollCorr;
     if(mDataMaps.at(ControlsData)->at(LeftAil) > 10) {
         mDataMaps.at(ControlsData)->at(LeftAil) = 10;
     }
@@ -122,7 +173,7 @@ void Guidance::Update() {
     }
     mDataMaps.at(ControlsData)->at(RightAil) = mDataMaps.at(ControlsData)->at(LeftAil);
 
-    mDataMaps.at(ControlsData)->at(RightElev) += -1*(float)Xcorr;
+    mDataMaps.at(ControlsData)->at(RightElev) += -1*PitchCorr;
     if(mDataMaps.at(ControlsData)->at(RightElev) > 4) {
         mDataMaps.at(ControlsData)->at(RightElev) = 4;
     }
@@ -130,21 +181,6 @@ void Guidance::Update() {
         mDataMaps.at(ControlsData)->at(RightElev) = -4;
     }
     mDataMaps.at(ControlsData)->at(LeftElev) = mDataMaps.at(ControlsData)->at(RightElev);
-
-    IPCns::IPC::unlock();
-    Sleep(1);
-
-}
-
-void Guidance::MasterSwitch(bool flag) {
-    if(flag) {
-        mDataMaps.at(DerivedData)->at(ControlOverride) = 1;
-        mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 1;
-    }
-    else {
-        mDataMaps.at(DerivedData)->at(ControlOverride) = 0;
-        mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 0;
-    }
 }
 
 void Guidance::Log(double* p, int n, int c) {
@@ -169,12 +205,12 @@ void Guidance::Log(double* p, int n, int c) {
 
 }
 
-double Guidance::GetCl(float Pitch) {
+double Guidance::GetCl(double Pitch) {       ///Fixme
     double c = (1.6 + 0.2)/(16.5 +5);
     return (Pitch + 5)*c - 0.2;
 }
 
-double Guidance::GetPitch(float Cl) {
+double Guidance::GetPitch(double Cl) {
     double c = (16.5 + 5)/(1.6+0.2);
     return (Cl + 0.2)*c - 5;
 }
