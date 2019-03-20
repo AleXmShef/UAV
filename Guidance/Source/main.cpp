@@ -23,8 +23,26 @@ int main() {
     while(flag) {
         int a;
         std::cin >> a;
-        if(a) {
-            flag = false;
+        int b;
+        switch(a) {
+            case 1:
+                flag = 0;
+                break;
+            case 2: //Switch to VSPD
+                std::cin >> b;
+                Guidance::GetInstance()->VNAVmode = Vspeed;
+                Guidance::GetInstance()->mAutopilotSettings.VSPD = b;
+                break;
+            case 3:
+                std::cin >> b;
+                Guidance::GetInstance()->mAutopilotSettings.HDG = b;
+                break;
+            case 4:
+                std::cin >> b;
+                Guidance::GetInstance()->VNAVmode = LVLCHNG;
+                Guidance::GetInstance()->mAutopilotSettings.ALT = b;
+            default:
+                break;
         }
     }
     MyThread.join();

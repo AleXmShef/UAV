@@ -40,8 +40,6 @@ Guidance::Guidance() {
 //    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
 //    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/mag_psi")});            //heading
 
-
-
     mODataRefs->insert({ControlOverride, XPLMFindDataRef("sim/operation/override/override_flightcontrol")});       //flag to override flight controls
     mODataRefs->insert({ControlSrfcOverride, XPLMFindDataRef("sim/operation/override/override_control_surfaces")});       //flag to override control surfaces
 

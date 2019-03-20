@@ -9,7 +9,7 @@
 #include "PIDPipeline.h"
 
 namespace UAV {
-    enum Axes{X, Y};
+    enum PIDdesc{PitchPIDpipe, RollPIDpipe, LVLchngPIDpipe, HDGselectPIDpipe};
     enum DataMaps{DerivedData, ControlsData};
     enum LNAVmodes{RouteL, HDGselect};
     enum VNAVmodes{RouteV, ALThold, LVLCHNG, Vspeed};
@@ -26,7 +26,11 @@ namespace UAV {
         static Guidance* GetInstance();
         void Update();
         void Log(double* p, int n, int c);
-    private:
+
+        LNAVmodes LNAVmode = HDGselect;
+        VNAVmodes VNAVmode = ALThold;
+        AutopilotSettings mAutopilotSettings;
+    protected:
         Guidance();
         void Init();
         void UpdateGuidance();
@@ -39,14 +43,11 @@ namespace UAV {
         clock_t t = 0;
         time_t t2 = 0;
 
-        LNAVmodes LNAVmode = HDGselect;
-        VNAVmodes VNAVmode = ALThold;
-        AutopilotSettings mAutopilotSettings;
 
-        std::map<Axes, PIDPipeline*> mPIDpipelines;
+
+        std::map<PIDdesc, PIDPipeline*> mPIDpipelines;
         std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
         std::map<std::string, double> mValuesForCalculation;
-
 
         static Guidance* mInstance;
     };

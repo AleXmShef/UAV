@@ -19,34 +19,42 @@ Guidance* Guidance::GetInstance() {
 
 void Guidance::Init() {
     //Register PID Pipelines
-    auto xPids = new std::vector<PID*>;
-    auto yPids = new std::vector<PID*>;
+    auto pitchPids = new std::vector<PID*>;
+    auto rollPids = new std::vector<PID*>;
 
-    auto xangvelpid = new PID(0.1, 1, -1, 0.4, 0.5, 0);
-    auto xcorrpid = new PID(0.1, 1, -1, 0.7, 0.5, 0.01);
-    xPids->push_back(xangvelpid);
-    xPids->push_back(xcorrpid);
+    auto pitchAngVelPID = new PID(0.1, 1, -1, 0.4, 0.5, 0);
+    auto pitchCorrPID = new PID(0.1, 1, -1, 0.7, 0.5, 0.01);
+    pitchPids->push_back(pitchAngVelPID);
+    pitchPids->push_back(pitchCorrPID);
 
-    auto yangvelpid = new PID(0.1, 2, -2, 0.7, 0.6, 0);
-    auto ycorrpid = new PID(0.1, 1.5, -1.5, 0.8, 0.6, 0.01);
-    yPids->push_back(yangvelpid);
-    yPids->push_back(ycorrpid);
+    auto rollAngVelPID = new PID(0.1, 4, -4, 0.4, 0.5, 0);
+    auto rollCorrPID = new PID(0.1, 4, -4, 1.5, 0.3, 0);
+    rollPids->push_back(rollAngVelPID);
+    rollPids->push_back(rollCorrPID);
 
-    auto xpipeline = new PIDPipeline(xPids);
-    auto ypipeline = new PIDPipeline(yPids);
-    mPIDpipelines.insert({X, xpipeline});
-    mPIDpipelines.insert({Y, ypipeline});
+    auto HDGselectPID = new PID(0.1, 3, -3, 0.1, 0.2, 0);
+    auto LVLchngPID = new PID(0.1, 800, -800, 4, 1.5, 0);
 
+    auto pitchPIDpipeline = new PIDPipeline(pitchPids);
+    auto rollPIDpipeline = new PIDPipeline(rollPids);
+    mPIDpipelines.insert({PitchPIDpipe, pitchPIDpipeline});
+    mPIDpipelines.insert({RollPIDpipe, rollPIDpipeline});
+
+    auto HDGselectPIDpipeline = new PIDPipeline(HDGselectPID);
+    mPIDpipelines.insert({HDGselectPIDpipe, HDGselectPIDpipeline});
+
+    auto LVLchngPIDpipeline = new PIDPipeline(LVLchngPID);
+    mPIDpipelines.insert({LVLchngPIDpipe, LVLchngPIDpipeline});
+
+    //Find DataMaps
     IPCns::IPCSharedMap* ptr;
     IPCns::IPCSharedMap* ptr2;
 
-    //Find DataMaps
     IPCns::IPC::GetInstance();
     mDataMaps.insert({DerivedData, IPCns::IPC::findData(ptr, SHRDOUTPUT_NAME)});     //Inverted
     mDataMaps.insert({ControlsData, IPCns::IPC::findData(ptr2, SHRDINPUT_NAME)});     //Inverted
 
-    mValuesForCalculation.insert({"VerticalVelocity", 0});
-
+    mValuesForCalculation.insert({"VerticalVelocity", 0});      ///Temporary
 
     //Lock controls
     IPCns::IPC::lock();
@@ -75,17 +83,28 @@ void Guidance::UpdateGuidance() {
 
     //Init target values
     double DesiredVerticalVelocity = 0;
-    double DesiredCurveR = 0;
     double DesiredAccCenter = 0;
 
     //See what do we need to do depending on an autopilot setup
     switch(LNAVmode) {
-        case HDGselect:
+        case HDGselect: {
             //Get desired angular velocity -> calculate desired AccCenter
+            double HDGerror = mAutopilotSettings.HDG;
+            if(mAutopilotSettings.HDG - mDataMaps.at(DerivedData)->at(Heading) > 180) {
+                HDGerror = mDataMaps.at(DerivedData)->at(Heading) - (360 - (mAutopilotSettings.HDG- mDataMaps.at(DerivedData)->at(Heading)));
+            }
+            else if(mDataMaps.at(DerivedData)->at(Heading) - mAutopilotSettings.HDG > 180) {
+                HDGerror = mDataMaps.at(DerivedData)->at(Heading) + (360 - (mDataMaps.at(DerivedData)->at(Heading) - mAutopilotSettings.HDG));
+            }
+            double DesiredYawAngVel = mPIDpipelines.at(HDGselectPIDpipe)->Calculate(HDGerror, mDataMaps.at(DerivedData)->at(Heading))*M_PI/180;
+            double DesiredCurveR = (mDataMaps.at(DerivedData)->at(Velocity)/1.944)/DesiredYawAngVel;
+            DesiredAccCenter = ((mDataMaps.at(DerivedData)->at(Velocity)/1.944)*(mDataMaps.at(DerivedData)->at(Velocity)/1.944))/DesiredCurveR;
             break;
-        case RouteL:
+        }
+        case RouteL: {
             //Get desired angular velocity -> calculate desired AccCenter ///Wind calculation HERE
             break;
+        }
         default:
             break;
     }
@@ -94,6 +113,7 @@ void Guidance::UpdateGuidance() {
             DesiredVerticalVelocity = 0;
             break;
         case LVLCHNG:
+            DesiredVerticalVelocity = mPIDpipelines.at(LVLchngPIDpipe)->Calculate(mAutopilotSettings.ALT, mDataMaps.at(DerivedData)->at(Altitude)*3.281);
             //Claculate desired vertical velocity for level change
             break;
         case Vspeed:
@@ -141,16 +161,17 @@ void Guidance::UpdateGuidance() {
     //calculate PIDs
     double PitchCorr = 0;
     double RollCorr = 0;
-    PitchCorr = mPIDpipelines.at(X)->Calculate(DesiredPitch, PitchAxisErrors)/500;
-    RollCorr = mPIDpipelines.at(Y)->Calculate(DesiredRoll, RollAxisErrors)/500;
+    PitchCorr = mPIDpipelines.at(PitchPIDpipe)->Calculate(DesiredPitch, PitchAxisErrors)/500;
+    RollCorr = mPIDpipelines.at(RollPIDpipe)->Calculate(DesiredRoll, RollAxisErrors)/500;
 
-    double arr[6] = {DesiredRoll, mDataMaps.at(DerivedData)->at(Roll), DesiredPitch, mDataMaps.at(DerivedData)->at(PitchAngVel)-mDataMaps.at(DerivedData)->at(YawAngVel)*sin(mDataMaps.at(DerivedData)->at(Roll)*M_PI/180), mDataMaps.at(DerivedData)->at(Pitch),
-                     mDataMaps.at(DerivedData)->at(YawAngVel)};
-    Guidance::Log(arr, 6, 0);
+    double arr[4] = {mDataMaps.at(DerivedData)->at(Heading), mDataMaps.at(DerivedData)->at(YawAngVel)*cos(mDataMaps.at(DerivedData)->at(Roll)), DesiredRoll, mDataMaps.at(DerivedData)->at(Roll)};
+    Guidance::Log(arr, 4, 0);
 
     UpdateControls(PitchCorr, RollCorr);
 
     IPCns::IPC::unlock();
+
+    Sleep(1);
 }
 
 void Guidance::UpdateControls(double PitchCorr, double RollCorr) {

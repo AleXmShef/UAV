@@ -10,8 +10,10 @@ namespace UAV {
         PIDPipeline();
         explicit PIDPipeline(int numPIDs);
         explicit PIDPipeline(std::vector<PID*>* PIDs);
+        explicit PIDPipeline(PID* pid);
 
         double Calculate(double setpoint, std::vector<double> errs);
+        double Calculate(double setpoint, double error);
         PID* GetPID(int numPID);
 
     private:
