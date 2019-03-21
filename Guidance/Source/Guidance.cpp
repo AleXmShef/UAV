@@ -126,14 +126,9 @@ void Guidance::UpdateGuidance() {
             break;
 
     }
-    //double R = 4000;
-    //double AccCenter = (mDataMaps.at(DerivedData)->at(Velocity)*mDataMaps.at(DerivedData)->at(Velocity))/(R*1.944);
-    //AccCenter = 0;
+
     double DesiredFcenter = mass*DesiredAccCenter;
     double DesiredFlift = mass*9.81;
-
-
-
 
     double Ftarget = sqrt(DesiredFcenter*DesiredFcenter+DesiredFlift*DesiredFlift);
     double qs = Flift/GetCl(mDataMaps.at(DerivedData)->at(PitchAoA));
