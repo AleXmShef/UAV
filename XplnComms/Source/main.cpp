@@ -114,7 +114,7 @@ PLUGIN_API int XPluginStart(
     XCOM::Guidance::GetInstance();
     XPLMRegisterFlightLoopCallback(DataUpdateCallback, -1.0, NULL);
 
-    //XPLMRegisterMapCreationHook(MyMapCreatedCallback, NULL);
+    XPLMRegisterMapCreationHook(MyMapCreatedCallback, NULL);
 
     //register menu
     //register window for menu
@@ -414,7 +414,7 @@ void MyMapIconDrawingCallback(XPLMMapLayerID inLayer, const float* inMapBoundsLe
     float mapX, mapY;
     const float midpoint_x = (inMapBoundsLeftTopRightBottom[0] + inMapBoundsLeftTopRightBottom[2]) / 2;
     const float midpoint_y = (inMapBoundsLeftTopRightBottom[1] + inMapBoundsLeftTopRightBottom[3]) / 2;
-    float s_icon_width = XPLMMapScaleMeter(projection, midpoint_x, midpoint_y) * 25000;
+    float s_icon_width = XPLMMapScaleMeter(projection, midpoint_x, midpoint_y) * 5000;
     XPLMMapProject(projection, XCOM::Guidance::GetInstance()->GetDataref(WaypointLAT), XCOM::Guidance::GetInstance()->GetDataref(WaypointLONG), &mapX, &mapY);
     XPLMDrawMapIconFromSheet(inLayer, "Resources/bitmaps/interface/star.png", 0, 0, 1, 1, mapX, mapY, xplm_MapOrientation_Map, 0,
             s_icon_width);
