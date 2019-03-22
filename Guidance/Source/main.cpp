@@ -41,6 +41,8 @@ int main() {
                 std::cin >> b;
                 Guidance::GetInstance()->VNAVmode = LVLCHNG;
                 Guidance::GetInstance()->mAutopilotSettings.ALT = b;
+            case 5:
+                Guidance::GetInstance()->SetRoute();
             default:
                 break;
         }
