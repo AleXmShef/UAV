@@ -1,5 +1,6 @@
 #include "Guidance.h"
 #include <math.h>
+#include <thread>
 
 using namespace UAV;
 
@@ -22,18 +23,18 @@ void Guidance::Init() {
     auto pitchPids = new std::vector<PID*>;
     auto rollPids = new std::vector<PID*>;
 
-    auto pitchAngVelPID = new PID(0.1, 1, -1, 0.4, 0.5, 0);
-    auto pitchCorrPID = new PID(0.1, 1, -1, 0.7, 0.5, 0.01);
+    auto pitchAngVelPID = new PID("Pitch Angular Velocity PID", 1, -1, 0.4, 0.5, 0);
+    auto pitchCorrPID = new PID("Pitch Control Surfaces PID", 1, -1, 0.7, 0.5, 0.01);
     pitchPids->push_back(pitchAngVelPID);
     pitchPids->push_back(pitchCorrPID);
 
-    auto rollAngVelPID = new PID(0.1, 4, -4, 0.4, 0.5, 0);
-    auto rollCorrPID = new PID(0.1, 4, -4, 1.5, 0.3, 0);
+    auto rollAngVelPID = new PID("Roll Angular Velocity PID", 4, -4, 0.4, 0.5, 0);
+    auto rollCorrPID = new PID("Roll Control Surfaces PID", 4, -4, 1.5, 0.3, 0);
     rollPids->push_back(rollAngVelPID);
     rollPids->push_back(rollCorrPID);
 
-    auto HDGselectPID = new PID(0.1, 3, -3, 0.1, 0.2, 0);
-    auto LVLchngPID = new PID(0.1, 800, -800, 4, 1.5, 0);
+    auto HDGselectPID = new PID("Heading Angular Velocity PID", 3, -3, 0.1, 0.2, 0.0001);
+    auto LVLchngPID = new PID("Vertical Speed PID", 800, -800, 4, 1.5, 0);
 
     auto pitchPIDpipeline = new PIDPipeline(pitchPids);
     auto rollPIDpipeline = new PIDPipeline(rollPids);
@@ -60,6 +61,10 @@ void Guidance::Init() {
     IPCns::IPC::lock();
     mDataMaps.at(DerivedData)->at(ControlOverride) = 1;
     mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 1;
+
+//    mAutopilotSettings.HDG = mDataMaps.at(DerivedData)->at(Heading);
+//    mAutopilotSettings.VSPD = mDataMaps.at(DerivedData)->at(VerticalVelocity);
+
     IPCns::IPC::unlock();
 }
 
@@ -87,6 +92,19 @@ void Guidance::UpdateGuidance() {
 
     //See what do we need to do depending on an autopilot setup
     switch(LNAVmode) {
+        case RouteL: {
+            double activeWaypointLAT = mWaypoints[0][0];
+            double activeWaypointLONG = mWaypoints[1][0];
+            double myLongitude = mDataMaps.at(DerivedData)->at(Longitude);
+            double myLatitude = mDataMaps.at(DerivedData)->at(Latitude);
+            double dLambda = (activeWaypointLONG - myLongitude)*M_PI/180;
+            double dPhi = (activeWaypointLAT - myLatitude)*M_PI/180;
+            double Azimuth = atan2((sin(dLambda)*cos(activeWaypointLAT)), (cos(myLatitude)*sin(activeWaypointLAT)-sin(myLatitude)*cos(activeWaypointLAT)*cos(dLambda)))*180/M_PI;
+            if(Azimuth < 0) {
+                Azimuth+=360;
+            }
+            mAutopilotSettings.HDG = Azimuth;
+        }
         case HDGselect: {
             //Get desired angular velocity -> calculate desired AccCenter
             double HDGerror = mAutopilotSettings.HDG;
@@ -99,10 +117,6 @@ void Guidance::UpdateGuidance() {
             double DesiredYawAngVel = mPIDpipelines.at(HDGselectPIDpipe)->Calculate(HDGerror, mDataMaps.at(DerivedData)->at(Heading))*M_PI/180;
             double DesiredCurveR = (mDataMaps.at(DerivedData)->at(Velocity)/1.944)/DesiredYawAngVel;
             DesiredAccCenter = ((mDataMaps.at(DerivedData)->at(Velocity)/1.944)*(mDataMaps.at(DerivedData)->at(Velocity)/1.944))/DesiredCurveR;
-            break;
-        }
-        case RouteL: {
-            //Get desired angular velocity -> calculate desired AccCenter ///Wind calculation HERE
             break;
         }
         default:
@@ -162,7 +176,6 @@ void Guidance::UpdateGuidance() {
     double arr[4] = {mDataMaps.at(DerivedData)->at(Heading), mDataMaps.at(DerivedData)->at(YawAngVel)*cos(mDataMaps.at(DerivedData)->at(Roll)), DesiredRoll, mDataMaps.at(DerivedData)->at(Roll)};
     //Guidance::Log(arr, 4, 0);
     Logger::GetInstance()->logConsole();
-
     UpdateControls(PitchCorr, RollCorr);
 
     IPCns::IPC::unlock();
@@ -191,11 +204,11 @@ void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
     mDataMaps.at(ControlsData)->at(RightAil) = mDataMaps.at(ControlsData)->at(LeftAil);
 
     mDataMaps.at(ControlsData)->at(RightElev) += -1*PitchCorr;
-    if(mDataMaps.at(ControlsData)->at(RightElev) > 4) {
-        mDataMaps.at(ControlsData)->at(RightElev) = 4;
+    if(mDataMaps.at(ControlsData)->at(RightElev) > 8) {
+        mDataMaps.at(ControlsData)->at(RightElev) = 8;
     }
-    else if (mDataMaps.at(ControlsData)->at(RightElev) < -4) {
-        mDataMaps.at(ControlsData)->at(RightElev) = -4;
+    else if (mDataMaps.at(ControlsData)->at(RightElev) < -8) {
+        mDataMaps.at(ControlsData)->at(RightElev) = -8;
     }
     mDataMaps.at(ControlsData)->at(LeftElev) = mDataMaps.at(ControlsData)->at(RightElev);
 }
@@ -210,7 +223,7 @@ void Guidance::Log(double* p, int n, int c) {
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
         GetConsoleScreenBufferInfo(console, &s);
         DWORD written, cells = s.dwSize.X * s.dwSize.Y;
-        FillConsoleOutputCharacter(console, ' ', cells, tl, &written);
+        //FillConsoleOutputCharacter(console, ' ', cells, tl, &written);
         FillConsoleOutputAttribute(console, s.wAttributes, cells, tl, &written);
 
         //get base
@@ -234,4 +247,37 @@ double Guidance::GetCl(double Pitch) {       ///Fixme
 double Guidance::GetPitch(double Cl) {
     double c = (16.5 + 5)/(1.6+0.2);
     return (Cl + 0.2)*c - 5;
+}
+
+void Guidance::SetRoute() {
+    if (mWaypoints.empty()) {
+        std::vector<double> lats;
+        std::vector<double> longs;
+        IPCns::IPC::lock();
+        double lat = mDataMaps.at(DerivedData)->at(Latitude);
+        double lng = mDataMaps.at(DerivedData)->at(Longitude);
+        IPCns::IPC::unlock();
+
+        srand(time(NULL));
+
+        double lat1 = lat + (double)((double)(rand() % 3-3)/10);
+        lats.push_back(lat1);
+        double lng1 = lng + (double)((double)(rand() % 3-3)/10);
+        longs.push_back(lng1);
+
+        double lat2 = lat1 + (double)((double)(rand() % 3-3)/10);
+        lats.push_back(lat2);
+        double lng2 = lng1 + (double)((double)(rand() % 3-3)/10);
+        longs.push_back(lng2);
+
+        double lat3 = lat2 + (double)((double)(rand() % 3-3)/10);
+        lats.push_back(lat3);
+        double lng3 = lng2 + (double)((double)(rand() % 3-3)/10);
+        longs.push_back(lng3);
+
+        mWaypoints.push_back(lats);
+        mWaypoints.pushback(longs);
+
+        LNAVmode = RouteL;
+    }
 }

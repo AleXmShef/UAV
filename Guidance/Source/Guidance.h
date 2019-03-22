@@ -27,11 +27,14 @@ namespace UAV {
         static Guidance* GetInstance();
         void Update();
         void Log(double* p, int n, int c);
+        void SetRoute();
 
+    public:
         LNAVmodes LNAVmode = HDGselect;
-        VNAVmodes VNAVmode = ALThold;
+        VNAVmodes VNAVmode = Vspeed;
         bool MasterArm = 0;
         AutopilotSettings mAutopilotSettings;
+        std::vector<std::vector<double>> mWaypoints;
     protected:
         Guidance();
         void Init();

@@ -1,7 +1,3 @@
-//
-// Created by Sasha on 22.03.2019.
-//
-
 #include "Logger.h"
 
 using namespace UAV;
@@ -10,7 +6,7 @@ Logger* Logger::mInstance = nullptr;
 
 Logger* Logger::GetInstance() {
     if (mInstance == nullptr)
-        Logger();
+        mInstance = new Logger();
     return mInstance;
 }
 
@@ -20,7 +16,6 @@ Logger::Logger() {
     GetConsoleScreenBufferInfo(mConsole, &mScreenBufferInfo);
     mCells = mScreenBufferInfo.dwSize.X * mScreenBufferInfo.dwSize.Y;
     FillConsoleOutputAttribute(mConsole, mScreenBufferInfo.wAttributes, mCells, tl, &mWritten);
-    mInstance = this;
 }
 
 void Logger::registerLoggable(UAV::Loggable *loggable) {
@@ -28,17 +23,29 @@ void Logger::registerLoggable(UAV::Loggable *loggable) {
 }
 
 void Logger::logConsole() {
-    COORD tl = {0, 0};
-    FillConsoleOutputCharacter(mConsole, ' ', mCells, tl, &mWritten);
-
-    for(int i = 0; i < mLoggableVec.size(); i++) {
-        if(mLoggableVec[i]->GetLogInfo() != nullptr) {
-            auto tMap = mLoggableVec[i]->GetLogInfo();
-            std::map<std::vector<std::string>*, std::vector<double>*>::iterator j;
-            for(j = tMap->begin(); j != tMap->end(); j++) {
-                std::cout << j->first << ": " << j->second << std::endl;
-            }
-            delete(tMap);
+    clock_t temp;
+    temp = clock();
+    if (temp > t) {
+        if (i > mLoggableVec.size() - 1) {
+            i = 0;
+            COORD tl = {0, 0};
+            SetConsoleCursorPosition(mConsole, tl);
         }
+        //FillConsoleOutputCharacter(mConsole, ' ', mCells, tl, &mWritten);
+        if (!mLoggableVec.empty()) {
+            if (mLoggableVec[i]->GetLogInfo() != nullptr) {
+                std::cout << mLoggableVec[i]->mName << std::endl;
+                auto tMap = mLoggableVec[i]->GetLogInfo();
+                std::map<std::string, double>::iterator j;
+                for (j = tMap->begin(); j != tMap->end(); j++) {
+                    std::cout << j->first << ": " << j->second<< std::endl;
+                }
+                delete (tMap);
+            }
+        }
+        std::cout << std::endl;
+        i++;
     }
+
+    t = temp;
 }
