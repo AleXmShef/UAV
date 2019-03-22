@@ -116,7 +116,7 @@ void Guidance::Update() {
     XPLMSetDatai(mODataRefs->at(ControlOverride), mOutputMap->at(ControlOverride));
     XPLMSetDatai(mODataRefs->at(ControlSrfcOverride), mOutputMap->at(ControlSrfcOverride));
     //Update flight params
-    for (int i = 0; i < ControlSrfcOverride - 1; i++) {
+    for (int i = 0; i < ControlSrfcOverride - 3; i++) {
         mOutputMap->at(i) = XPLMGetDataf(mODataRefs->at((SimDataEnum)i));
     }
 
