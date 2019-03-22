@@ -52,3 +52,25 @@ double PID::calculate(double setpoint, double pv) {
     return output;
 }
 
+std::map<std::vector<std::string>*, std::vector<double>*>* PID::GetLogInfo() {
+    auto mVec = new std::vector<std::string>;
+    auto mVVec = new std::vector<double>;
+    auto mMap = new std::map<std::vector<std::string>*, std::vector<double>*>;
+
+    mVec->push_back("Last output");
+    mVec->push_back("Last error");
+    mVec->push_back("Last Kp output");
+    mVec->push_back("Last Ki output");
+    mVec->push_back("Last Kd output");
+
+    mVVec->push_back(_last_output);
+    mVVec->push_back(_last_error);
+    mVVec->push_back(_last_Kp_output);
+    mVVec->push_back(_last_Ki_output);
+    mVVec->push_back(_last_Kd_output);
+
+    mMap->insert({mVec, mVVec});
+
+    return mMap;
+}
+

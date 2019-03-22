@@ -7,6 +7,7 @@
 #include "IPC.h"
 #include "enums.h"
 #include "PIDPipeline.h"
+#include "Logger.h"
 
 namespace UAV {
     enum PIDdesc{PitchPIDpipe, RollPIDpipe, LVLchngPIDpipe, HDGselectPIDpipe};
@@ -29,6 +30,7 @@ namespace UAV {
 
         LNAVmodes LNAVmode = HDGselect;
         VNAVmodes VNAVmode = ALThold;
+        bool MasterArm = 0;
         AutopilotSettings mAutopilotSettings;
     protected:
         Guidance();

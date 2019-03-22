@@ -160,7 +160,8 @@ void Guidance::UpdateGuidance() {
     RollCorr = mPIDpipelines.at(RollPIDpipe)->Calculate(DesiredRoll, RollAxisErrors)/500;
 
     double arr[4] = {mDataMaps.at(DerivedData)->at(Heading), mDataMaps.at(DerivedData)->at(YawAngVel)*cos(mDataMaps.at(DerivedData)->at(Roll)), DesiredRoll, mDataMaps.at(DerivedData)->at(Roll)};
-    Guidance::Log(arr, 4, 0);
+    //Guidance::Log(arr, 4, 0);
+    Logger::GetInstance()->logConsole();
 
     UpdateControls(PitchCorr, RollCorr);
 
@@ -203,6 +204,7 @@ void Guidance::Log(double* p, int n, int c) {
     clock_t temp;
     temp = clock();
     if (temp > t + 5) {
+        //clean console
         COORD tl = {(short) c, 0};
         CONSOLE_SCREEN_BUFFER_INFO s;
         HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -210,6 +212,9 @@ void Guidance::Log(double* p, int n, int c) {
         DWORD written, cells = s.dwSize.X * s.dwSize.Y;
         FillConsoleOutputCharacter(console, ' ', cells, tl, &written);
         FillConsoleOutputAttribute(console, s.wAttributes, cells, tl, &written);
+
+        //get base
+
         SetConsoleCursorPosition(console, tl);
 
         for (int i = 0; i < n; i++) {
