@@ -300,8 +300,10 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
         alt*=3.281;
         int h = (alt/100)*18;
         for (int i = 0; i < alt + 500; i+= 100) {
-            char buff[4];
-            sprintf(buff, "%d", i);
+            //char buff[4];
+            //sprintf(buff, "%d", i);
+            char buff[6];
+            sprintf(buff, "%e", XCOM::Guidance::GetInstance()->GetDataref(WaypointLAT));
             XPLMDrawString(col_white, r - 30*sc, t - (100 + h)*sc, buff, NULL, xplmFont_Proportional);
             h-=18;
         }
@@ -359,7 +361,10 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
 
     //Drawing flight directors
 
-
+    glColor4f(1, 1, 1, 1);  //black
+    char buff[100];
+    sprintf(buff, "%e", XCOM::Guidance::GetInstance()->GetDataref(WaypointLAT));
+    XPLMDrawString(col_white, l + 10, t - 20, "Hello World", NULL, xplmFont_Proportional);
 
 
 
