@@ -104,8 +104,8 @@ void Guidance::UpdateGuidance() {
                 Azimuth+=360;
             }
             mAutopilotSettings.HDG = Azimuth;
-            mDataMaps.at(DerivedData)->at(WaypointLONG) = activeWaypointLONG;
-            mDataMaps.at(DerivedData)->at(WaypointLAT) = activeWaypointLAT;
+            mDataMaps.at(DerivedData)->at(WaypointLONG) = mWaypoints[1][0];
+            mDataMaps.at(DerivedData)->at(WaypointLAT) = mWaypoints[0][0];
         }
         case HDGselect: {
             //Get desired angular velocity -> calculate desired AccCenter
