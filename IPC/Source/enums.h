@@ -20,6 +20,8 @@ enum SimDataEnum{Latitude,
         YawAngAcc,
         Mass,
         VerticalVelocity,
+        WaypointLONG,
+        WaypointLAT,
 
 
         //These must be at the end
