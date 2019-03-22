@@ -33,7 +33,7 @@ void Guidance::Init() {
     rollPids->push_back(rollAngVelPID);
     rollPids->push_back(rollCorrPID);
 
-    auto HDGselectPID = new PID("Heading Angular Velocity PID", 3, -3, 0.1, 0.2, 0.0001);
+    auto HDGselectPID = new PID("Heading Angular Velocity PID", 3, -3, 0.1, 0.2, 0);
     auto LVLchngPID = new PID("Vertical Speed PID", 800, -800, 4, 1.5, 0);
 
     auto pitchPIDpipeline = new PIDPipeline(pitchPids);
