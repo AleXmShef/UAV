@@ -303,7 +303,7 @@ void draw_hello_world(XPLMWindowID in_window_id, void * in_refcon)
             //char buff[4];
             //sprintf(buff, "%d", i);
             char buff[6];
-            sprintf(buff, "%e", XCOM::Guidance::GetInstance()->GetDataref(WaypointLAT));
+            sprintf(buff, "%f", XCOM::Guidance::GetInstance()->GetDataref(WaypointLONG));
             XPLMDrawString(col_white, r - 30*sc, t - (100 + h)*sc, buff, NULL, xplmFont_Proportional);
             h-=18;
         }
