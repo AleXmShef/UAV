@@ -93,12 +93,12 @@ void Guidance::UpdateGuidance() {
     //See what do we need to do depending on an autopilot setup
     switch(LNAVmode) {
         case RouteL: {
-            double activeWaypointLAT = mWaypoints[0][0];
-            double activeWaypointLONG = mWaypoints[1][0];
-            double myLongitude = mDataMaps.at(DerivedData)->at(Longitude);
-            double myLatitude = mDataMaps.at(DerivedData)->at(Latitude);
-            double dLambda = (activeWaypointLONG - myLongitude)*M_PI/180;
-            double dPhi = (activeWaypointLAT - myLatitude)*M_PI/180;
+            double activeWaypointLAT = mWaypoints[0][0]*M_PI/180;
+            double activeWaypointLONG = mWaypoints[1][0]*M_PI/180;
+            double myLongitude = mDataMaps.at(DerivedData)->at(Longitude)*M_PI/180;
+            double myLatitude = mDataMaps.at(DerivedData)->at(Latitude)*M_PI/180;
+            double dLambda = (activeWaypointLONG - myLongitude);
+            double dPhi = (activeWaypointLAT - myLatitude);
             double Azimuth = atan2((sin(dLambda)*cos(activeWaypointLAT)), (cos(myLatitude)*sin(activeWaypointLAT)-sin(myLatitude)*cos(activeWaypointLAT)*cos(dLambda)))*180/M_PI;
             if(Azimuth < 0) {
                 Azimuth+=360;
@@ -175,9 +175,12 @@ void Guidance::UpdateGuidance() {
     PitchCorr = mPIDpipelines.at(PitchPIDpipe)->Calculate(DesiredPitch, PitchAxisErrors)/500;
     RollCorr = mPIDpipelines.at(RollPIDpipe)->Calculate(DesiredRoll, RollAxisErrors)/500;
 
-    double arr[4] = {mDataMaps.at(DerivedData)->at(Heading), mDataMaps.at(DerivedData)->at(YawAngVel)*cos(mDataMaps.at(DerivedData)->at(Roll)), DesiredRoll, mDataMaps.at(DerivedData)->at(Roll)};
-    //Guidance::Log(arr, 4, 0);
-    Logger::GetInstance()->logConsole();
+    if(!mWaypoints.empty()) {
+        double arr[4] = {mDataMaps.at(DerivedData)->at(Latitude), mDataMaps.at(DerivedData)->at(Longitude),
+                         mWaypoints[0][0], mWaypoints[1][0]};
+        Guidance::Log(arr, 4, 0);
+    }
+    //Logger::GetInstance()->logConsole();
     UpdateControls(PitchCorr, RollCorr);
 
     IPCns::IPC::unlock();
