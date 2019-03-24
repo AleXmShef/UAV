@@ -10,16 +10,23 @@ using namespace UAV;
 
 bool flag = 1;
 
-void loop() {
-    Guidance* mGuidance = Guidance::GetInstance();
+void loop2(Guidance* mGuidance) {
 
+    while(flag) {
+        mGuidance->CalculateControls();
+    }
+}
+
+void loop1(Guidance* mGuidance) {
     while(flag) {
         mGuidance->Update();
     }
 }
 
 int main() {
-    std::thread MyThread(loop);
+    Guidance* mGuidance = Guidance::GetInstance();
+    std::thread MyThread1(loop1, mGuidance);
+    std::thread MyThread2(loop2, mGuidance);
     while(flag) {
         int a;
         std::cin >> a;
@@ -30,24 +37,27 @@ int main() {
                 break;
             case 2: //Switch to VSPD
                 std::cin >> b;
-                Guidance::GetInstance()->VNAVmode = Vspeed;
-                Guidance::GetInstance()->mAutopilotSettings.VSPD = b;
+                mGuidance->VNAVmode = Vspeed;
+                mGuidance->mAutopilotSettings.VSPD = b;
                 break;
             case 3:
                 std::cin >> b;
-                Guidance::GetInstance()->mAutopilotSettings.HDG = b;
+                mGuidance->mAutopilotSettings.HDG = b;
+                mGuidance->LNAVmode = HDGselect;
                 break;
             case 4:
                 std::cin >> b;
-                Guidance::GetInstance()->VNAVmode = LVLCHNG;
-                Guidance::GetInstance()->mAutopilotSettings.ALT = b;
+                mGuidance->VNAVmode = LVLCHNG;
+                mGuidance->mAutopilotSettings.ALT = b;
+                break;
             case 5:
-                Guidance::GetInstance()->SetRoute();
+                mGuidance->LNAVmode = RouteL;
             default:
                 break;
         }
     }
-    MyThread.join();
+    MyThread1.join();
+    MyThread2.join();
 
     return 0;
 }

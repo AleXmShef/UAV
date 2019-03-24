@@ -28,6 +28,7 @@ namespace UAV {
         void Update();
         void Log(double* p, int n, int c);
         void SetRoute();
+        void CalculateControls();
 
     public:
         LNAVmodes LNAVmode = HDGselect;
@@ -38,6 +39,7 @@ namespace UAV {
     protected:
         Guidance();
         void Init();
+
         void UpdateGuidance();
         void UpdateControls(double PitchCorr, double RollCorr);
 
@@ -49,10 +51,15 @@ namespace UAV {
         time_t t2 = 0;
 
 
-
+        double mPitchCorr = 0;
+        double mRollCorr = 0;
+        double mDesiredPitch = 0;
+        double mDesiredRoll = 0;
         std::map<PIDdesc, PIDPipeline*> mPIDpipelines;
         std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
         std::map<std::string, double> mValuesForCalculation;
+        std::vector<double> mPitchAxisErrors;
+        std::vector<double> mRollAxisErrors;
 
         static Guidance* mInstance;
     };
