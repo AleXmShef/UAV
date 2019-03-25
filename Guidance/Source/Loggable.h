@@ -13,7 +13,7 @@ namespace UAV {
     public:
         Loggable(){};
         Loggable(std::string name): mName(name){};
-        virtual std::map<std::string, double>* GetLogInfo() { return nullptr;};
+        virtual std::map<std::string, double>* getLogInfo() { return nullptr;};
         std::string mName = "NameIsNotSet";
     };
 }

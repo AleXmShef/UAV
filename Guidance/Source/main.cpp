@@ -26,6 +26,7 @@ void loop1(Guidance* mGuidance) {
 int main() {
     Guidance* mGuidance = Guidance::GetInstance();
     std::thread MyThread1(loop1, mGuidance);
+    Sleep(3);
     std::thread MyThread2(loop2, mGuidance);
     while(flag) {
         int a;
@@ -37,21 +38,18 @@ int main() {
                 break;
             case 2: //Switch to VSPD
                 std::cin >> b;
-                mGuidance->VNAVmode = Vspeed;
-                mGuidance->mAutopilotSettings.VSPD = b;
+                mGuidance->DebugChangeAutopilotVNAVMode(Vspeed, b);
                 break;
             case 3:
                 std::cin >> b;
-                mGuidance->mAutopilotSettings.HDG = b;
-                mGuidance->LNAVmode = HDGselect;
+                mGuidance->DebugChangeAutopilotLNAVMode(HDGselect, b);
                 break;
             case 4:
                 std::cin >> b;
-                mGuidance->VNAVmode = LVLCHNG;
-                mGuidance->mAutopilotSettings.ALT = b;
+                mGuidance->DebugChangeAutopilotVNAVMode(LVLCHNG, b);
                 break;
             case 5:
-                mGuidance->LNAVmode = RouteL;
+                mGuidance->DebugStartRouteGeneration();
             default:
                 break;
         }

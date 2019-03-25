@@ -56,7 +56,7 @@ double PID::calculate(double setpoint, double pv) {
     return output;
 }
 
-std::map<std::string, double>* PID::GetLogInfo() {
+std::map<std::string, double>* PID::getLogInfo() {
     auto mMap = new std::map<std::string, double>;
 
     mMap->insert({"Last output", _last_output});

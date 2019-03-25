@@ -13,7 +13,7 @@ namespace UAV {
         PID(std::string name, double max, double min, double Kp, double Kd, double Ki);
 
         double calculate(double setpoint, double pv);
-        std::map<std::string, double>* GetLogInfo() override;
+        std::map<std::string, double>* getLogInfo() override;
 
     public:
         double _dT = 0.1;

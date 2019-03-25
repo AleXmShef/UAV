@@ -33,9 +33,9 @@ void Logger::logConsole() {
         }
         //FillConsoleOutputCharacter(mConsole, ' ', mCells, tl, &mWritten);
         if (!mLoggableVec.empty()) {
-            if (mLoggableVec[i]->GetLogInfo() != nullptr) {
+            if (mLoggableVec[i]->getLogInfo() != nullptr) {
                 std::cout << mLoggableVec[i]->mName << std::endl;
-                auto tMap = mLoggableVec[i]->GetLogInfo();
+                auto tMap = mLoggableVec[i]->getLogInfo();
                 std::map<std::string, double>::iterator j;
                 for (j = tMap->begin(); j != tMap->end(); j++) {
                     std::cout << j->first << ": " << j->second<< std::endl;

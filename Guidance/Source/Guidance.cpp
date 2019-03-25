@@ -38,82 +38,129 @@ void Guidance::Init() {
 
     auto pitchPIDpipeline = new PIDPipeline(pitchPids);
     auto rollPIDpipeline = new PIDPipeline(rollPids);
-    mPIDpipelines.insert({PitchPIDpipe, pitchPIDpipeline});
-    mPIDpipelines.insert({RollPIDpipe, rollPIDpipeline});
+    mVariables.controlCalculation.mPIDpipelines.insert({PitchPIDpipe, pitchPIDpipeline});
+    mVariables.controlCalculation.mPIDpipelines.insert({RollPIDpipe, rollPIDpipeline});
 
     auto HDGselectPIDpipeline = new PIDPipeline(HDGselectPID);
-    mPIDpipelines.insert({HDGselectPIDpipe, HDGselectPIDpipeline});
+    mVariables.controlCalculation.mPIDpipelines.insert({HDGselectPIDpipe, HDGselectPIDpipeline});
 
     auto LVLchngPIDpipeline = new PIDPipeline(LVLchngPID);
-    mPIDpipelines.insert({LVLchngPIDpipe, LVLchngPIDpipeline});
+    mVariables.controlCalculation.mPIDpipelines.insert({LVLchngPIDpipe, LVLchngPIDpipeline});
+
+    std::vector<double> PitchAxisErrors;
+    std::vector<double> RollAxisErrors;
+
+    mVariables.controlCalculation.mPIDpipelinesErrors.insert({PitchPIDpipe, PitchAxisErrors});
+    mVariables.controlCalculation.mPIDpipelinesErrors.insert({RollPIDpipe, RollAxisErrors});
 
     //Find DataMaps
     IPCns::IPCSharedMap* ptr;
     IPCns::IPCSharedMap* ptr2;
 
     IPCns::IPC::GetInstance();
-    mDataMaps.insert({DerivedData, IPCns::IPC::findData(ptr, SHRDOUTPUT_NAME)});     //Inverted
-    mDataMaps.insert({ControlsData, IPCns::IPC::findData(ptr2, SHRDINPUT_NAME)});     //Inverted
+    mVariables.telemetry.mDataMaps.insert({DerivedData, IPCns::IPC::findData(ptr, SHRDOUTPUT_NAME)});     //Inverted
+    mVariables.telemetry.mDataMaps.insert({ControlsData, IPCns::IPC::findData(ptr2, SHRDINPUT_NAME)});     //Inverted
 
-    mValuesForCalculation.insert({"VerticalVelocity", 0});      ///Temporary
-
-    mWaypoints.resize(2);
+    mVariables.mRoute = Route::GetInstance();
+    //mWaypoints.resize(2);
 //    mWaypoints[0].resize(5);
 //    mWaypoints[1].resize(5);
-    mPitchAxisErrors.resize(2);
-    mRollAxisErrors.resize(2);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe).resize(2);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe).resize(2);
 
     //Lock controls
     IPCns::IPC::lock();
-    mDataMaps.at(DerivedData)->at(ControlOverride) = 1;
-    mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 1;
-
-    mAutopilotSettings.HDG = mDataMaps.at(DerivedData)->at(Heading);
-    mAutopilotSettings.VSPD = mDataMaps.at(DerivedData)->at(VerticalVelocity);
+    mVariables.telemetry.mDataMaps.at(DerivedData)->at(ControlOverride) = 1;
+    mVariables.telemetry.mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 1;
 
     IPCns::IPC::unlock();
+
+    //UpdateTelemetry();
+
+//    mVariables.autopilotSettings.HDG = mVariables.telemetry.heading;
+//    mVariables.autopilotSettings.VSPD = mVariables.telemetry.verticalVelocityFPM;
 }
 
 void Guidance::Update() {
     UpdateGuidance();
 }
 
-void Guidance::UpdateGuidance() {
+void Guidance::UpdateTelemetry() {
     IPCns::IPC::lock();
 
-    //Get elapsed time since last iteration
-    time_t CurTime;
-    time(&CurTime);
-    float dT = CurTime - t2;
+    clock_t temp = clock();
+    mVariables.timePassed = (double)(temp - mVariables.clockPassed)/CLOCKS_PER_SEC;
+    mVariables.clockPassed = temp;
 
-    //Get necessary current values
-    double mass = mDataMaps.at(DerivedData)->at(Mass);
-    double Vv = mDataMaps.at(DerivedData)->at(VerticalVelocity);
-    double Vacc = (Vv - mValuesForCalculation.at("VerticalVelocity"))/dT;
-    double Flift = mass*(9.81+Vacc);
+    mVariables.telemetry.latitude =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+    mVariables.telemetry.longitude =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Longitude);
+
+    mVariables.telemetry.pitch =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Pitch);
+    mVariables.telemetry.roll =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Roll);
+    mVariables.telemetry.heading =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Heading);
+
+    mVariables.telemetry.altitudeM =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Altitude);
+    mVariables.telemetry.altitudeF =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Altitude)*3.281;
+    mVariables.telemetry.IAS =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Velocity);
+
+    mVariables.telemetry.pitchAoA =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(PitchAoA);
+    mVariables.telemetry.yawAoA =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(YawAoA);
+
+    //mVariables.telemetry.IAsAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+    mVariables.telemetry.verticalAccelereation =  (mVariables.telemetry.mDataMaps.at(DerivedData)->at(VerticalVelocity)/196.85 - mVariables.telemetry.verticalVelocityMPS)/mVariables.timePassed;
+    //mVariables.telemetry.lateralAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+
+    mVariables.telemetry.verticalPath =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(VerticalPath);
+    mVariables.telemetry.horizontalPath =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(HorizontalPath);
+    mVariables.telemetry.verticalVelocityFPM =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(VerticalVelocity);
+    mVariables.telemetry.verticalVelocityMPS =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(VerticalVelocity)/196.85;
+    //mVariables.telemetry.lateralVelocity =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+
+    mVariables.telemetry.pitchAngularVelocity =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(PitchAngVel);
+    mVariables.telemetry.rollAngularVelocity =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(RollAngVel);
+    mVariables.telemetry.yawAngularVelocity =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(YawAngVel);
+
+    mVariables.telemetry.pitchAngularAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(PitchAngAcc);
+    mVariables.telemetry.rollAngularAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(RollAngAcc);
+    mVariables.telemetry.yawAngularAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(YawAngAcc);
+
+    mVariables.telemetry.massCurrent =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Mass);
+    //mVariables.telemetry.massFuel =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+
+    IPCns::IPC::unlock();
+
+    Sleep(1);
+}
+
+void Guidance::UpdateGuidance() {
+
+    UpdateTelemetry();
+
+    //Get elapsed time since last iteration
+
+    double Flift = mVariables.telemetry.massCurrent*(9.81+mVariables.telemetry.verticalAccelereation);
 
     //Init target values
     double DesiredVerticalVelocity = 0;
     double DesiredAccCenter = 0;
 
     //See what do we need to do depending on an autopilot setup
-    switch(LNAVmode) {
+    switch(mVariables.autopilotSettings.LNAVmode) {
         case RouteL: {
-            if(mWaypoints[0].empty()) {
+            if(mVariables.mRoute->isEmpty()) {
                 SetRoute();
             }
-            double activeWaypointLAT = mWaypoints[0][0]*M_PI/180;
-            double activeWaypointLONG = mWaypoints[1][0]*M_PI/180;
-            double myLongitude = mDataMaps.at(DerivedData)->at(Longitude)*M_PI/180;
-            double myLatitude = mDataMaps.at(DerivedData)->at(Latitude)*M_PI/180;
+            double activeWaypointLAT = mVariables.mRoute->getActiveWaypoint().getLocation()[0]*M_PI/180;
+            double activeWaypointLONG = mVariables.mRoute->getActiveWaypoint().getLocation()[1]*M_PI/180;
+            double myLongitude = mVariables.telemetry.longitude*M_PI/180;
+            double myLatitude = mVariables.telemetry.latitude*M_PI/180;
             if(abs(activeWaypointLAT - myLatitude) < 0.005*M_PI/180 && abs(activeWaypointLONG - myLongitude) < 0.005*M_PI/180){
-                mWaypoints[0].erase(mWaypoints[0].begin());
-                mWaypoints[1].erase(mWaypoints[1].begin());
-                if(mWaypoints[0].empty()) {
+                mVariables.mRoute->toNextWaypoint();
+                if(mVariables.mRoute->isEmpty()) {
                     SetRoute();
                 }
-                activeWaypointLAT = mWaypoints[0][0]*M_PI/180;
-                activeWaypointLONG = mWaypoints[1][0]*M_PI/180;
+                activeWaypointLAT = mVariables.mRoute->getActiveWaypoint().getLocation()[0]*M_PI/180;
+                activeWaypointLONG = mVariables.mRoute->getActiveWaypoint().getLocation()[1]*M_PI/180;
             }
             double dLambda = (activeWaypointLONG - myLongitude);
             double dPhi = (activeWaypointLAT - myLatitude);
@@ -121,37 +168,37 @@ void Guidance::UpdateGuidance() {
             if(Azimuth < 0) {
                 Azimuth+=360;
             }
-            mAutopilotSettings.HDG = Azimuth;
-            mDataMaps.at(DerivedData)->at(WaypointLONG) = mWaypoints[1][0];
-            mDataMaps.at(DerivedData)->at(WaypointLAT) = mWaypoints[0][0];
+            mVariables.autopilotSettings.HDG = Azimuth;
+            mVariables.telemetry.mDataMaps.at(DerivedData)->at(WaypointLONG) = mVariables.mRoute->getActiveWaypoint().getLocation()[1];
+            mVariables.telemetry.mDataMaps.at(DerivedData)->at(WaypointLAT) = mVariables.mRoute->getActiveWaypoint().getLocation()[0];
         }
         case HDGselect: {
             //Get desired angular velocity -> calculate desired AccCenter
-            double HDGerror = mAutopilotSettings.HDG;
-            if(mAutopilotSettings.HDG - mDataMaps.at(DerivedData)->at(Heading) > 180) {
-                HDGerror = mDataMaps.at(DerivedData)->at(Heading) - (360 - (mAutopilotSettings.HDG- mDataMaps.at(DerivedData)->at(Heading)));
+            double HDGerror = mVariables.autopilotSettings.HDG;
+            if( mVariables.autopilotSettings.HDG - mVariables.telemetry.heading > 180) {
+                HDGerror = mVariables.telemetry.heading - (360 - ( mVariables.autopilotSettings.HDG- mVariables.telemetry.heading));
             }
-            else if(mDataMaps.at(DerivedData)->at(Heading) - mAutopilotSettings.HDG > 180) {
-                HDGerror = mDataMaps.at(DerivedData)->at(Heading) + (360 - (mDataMaps.at(DerivedData)->at(Heading) - mAutopilotSettings.HDG));
+            else if(mVariables.telemetry.heading - mVariables.autopilotSettings.HDG > 180) {
+                HDGerror = mVariables.telemetry.heading + (360 - (mVariables.telemetry.heading -  mVariables.autopilotSettings.HDG));
             }
-            double DesiredYawAngVel = mPIDpipelines.at(HDGselectPIDpipe)->Calculate(HDGerror, mDataMaps.at(DerivedData)->at(Heading))*M_PI/180;
-            double DesiredCurveR = (mDataMaps.at(DerivedData)->at(Velocity)/1.944)/DesiredYawAngVel;
-            DesiredAccCenter = ((mDataMaps.at(DerivedData)->at(Velocity)/1.944)*(mDataMaps.at(DerivedData)->at(Velocity)/1.944))/DesiredCurveR;
+            double DesiredYawAngVel = mVariables.controlCalculation.mPIDpipelines.at(HDGselectPIDpipe)->Calculate(HDGerror, mVariables.telemetry.heading)*M_PI/180;
+            double DesiredCurveR = (mVariables.telemetry.IAS/1.944)/DesiredYawAngVel;
+            DesiredAccCenter = ((mVariables.telemetry.IAS/1.944)*(mVariables.telemetry.IAS/1.944))/DesiredCurveR;
             break;
         }
         default:
             break;
     }
-    switch(VNAVmode) {
+    switch(mVariables.autopilotSettings.VNAVmode) {
         case ALThold:
             DesiredVerticalVelocity = 0;
             break;
         case LVLCHNG:
-            DesiredVerticalVelocity = mPIDpipelines.at(LVLchngPIDpipe)->Calculate(mAutopilotSettings.ALT, mDataMaps.at(DerivedData)->at(Altitude)*3.281);
+            DesiredVerticalVelocity = mVariables.controlCalculation.mPIDpipelines.at(LVLchngPIDpipe)->Calculate(mVariables.autopilotSettings.ALT, mVariables.telemetry.altitudeF);
             //Claculate desired vertical velocity for level change
             break;
         case Vspeed:
-            DesiredVerticalVelocity = mAutopilotSettings.VSPD;
+            DesiredVerticalVelocity = mVariables.autopilotSettings.VSPD;
             break;
         case RouteV:
             //climb&descent profiles
@@ -161,61 +208,39 @@ void Guidance::UpdateGuidance() {
 
     }
 
-    double DesiredFcenter = mass*DesiredAccCenter;
-    double DesiredFlift = mass*9.81;
+    double DesiredFcenter = mVariables.telemetry.massCurrent*DesiredAccCenter;
+    double DesiredFlift = mVariables.telemetry.massCurrent*9.81;
 
     double Ftarget = sqrt(DesiredFcenter*DesiredFcenter+DesiredFlift*DesiredFlift);
-    double qs = Flift/GetCl(mDataMaps.at(DerivedData)->at(PitchAoA));
+    double qs = Flift/GetCl(mVariables.telemetry.pitchAoA);
 
     double DesiredAoA = 0.0001;
     DesiredAoA += GetPitch(Ftarget/qs);
 
-    mDesiredRoll = asin(DesiredFcenter/Ftarget)*180/M_PI;
+    mVariables.controlCalculation.desiredRoll = asin(DesiredFcenter/Ftarget)*180/M_PI;
 
-    mDesiredPitch = 0.0001;
-    mDesiredPitch += DesiredAoA + (asin(DesiredVerticalVelocity/(mDataMaps.at(DerivedData)->at(Velocity)*101.269)))*180/M_PI;
+    mVariables.controlCalculation.desiredPitch = 0.0001;
+    mVariables.controlCalculation.desiredPitch += DesiredAoA + (asin(DesiredVerticalVelocity/(mVariables.telemetry.IAS*101.269)))*180/M_PI;
 
-    mValuesForCalculation.at("VerticalVelocity") = Vv;
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe)[0] = (mVariables.telemetry.pitch);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe)[1] = (mVariables.telemetry.pitchAngularVelocity-mVariables.telemetry.yawAngularVelocity
+            *sin(mVariables.telemetry.roll*M_PI/180));
 
-    //CalculateControls
-//    std::vector<double> mPitchAxisErrors;
-//    std::vector<double> mRollAxisErrors;
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[0] = (mVariables.telemetry.roll);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[1] = (mVariables.telemetry.rollAngularVelocity);
 
-    mPitchAxisErrors[0] = (mDataMaps.at(DerivedData)->at(Pitch));
-    mPitchAxisErrors[1] = (mDataMaps.at(DerivedData)->at(PitchAngVel)-mDataMaps.at(DerivedData)->at(YawAngVel)*sin(mDataMaps.at(DerivedData)->at(Roll)*M_PI/180));
+    //Logger::GetInstance()->logConsole();
 
-    mRollAxisErrors[0] = (mDataMaps.at(DerivedData)->at(Roll));
-    mRollAxisErrors[1] = (mDataMaps.at(DerivedData)->at(RollAngVel));
-
-    //calculate PIDs
-
-
-//    if(!mWaypoints[0].empty()) {
-//        double arr[4] = {mDataMaps.at(DerivedData)->at(Latitude), mDataMaps.at(DerivedData)->at(Longitude),
-//                         mWaypoints[0][0], mWaypoints[1][0]};
-//        Guidance::Log(arr, 4, 0);
-//    }
-
-    //double arr[4] = {mPitchAxisErrors[0], mPitchAxisErrors[1], mRollAxisErrors[0], mRollAxisErrors[1]};
-    //Guidance::Log(arr, 4, 0);
-    Logger::GetInstance()->logConsole();
-
-    UpdateControls(mPitchCorr, mRollCorr);
-
-    IPCns::IPC::unlock();
-
-    Sleep(1);
+     UpdateControls(mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr);
+     double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
+     Log(arr, 2, 0);
 
 }
 
 void Guidance::CalculateControls() {
 
-    mPitchCorr = mPIDpipelines.at(PitchPIDpipe)->Calculate(mDesiredPitch, mPitchAxisErrors)/500;
-    mRollCorr = mPIDpipelines.at(RollPIDpipe)->Calculate(mDesiredRoll, mRollAxisErrors)/500;
-
-    double arr[2] = {mDesiredPitch, mDesiredRoll};
-    //Guidance::Log(arr, 2, 0);
-
+    mVariables.controlCalculation.pitchCorr = mVariables.controlCalculation.mPIDpipelines.at(PitchPIDpipe)->Calculate( mVariables.controlCalculation.desiredPitch, mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe))/500;
+    mVariables.controlCalculation.rollCorr = mVariables.controlCalculation.mPIDpipelines.at(RollPIDpipe)->Calculate( mVariables.controlCalculation.desiredRoll, mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe))/500;
     //Sleep(1);
 }
 
@@ -229,25 +254,27 @@ void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
 //    mDataMaps.at(ControlsData)->at(RightAil) = RollCorr;     //Up
 //    mDataMaps.at(ControlsData)->at(LeftElev) = PitchCorr;     //Up
 //    mDataMaps.at(ControlsData)->at(RightElev) = PitchCorr;    //Up
+    IPCns::IPC::lock();
 
+    mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) += RollCorr;
+    if( mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) > 10) {
+        mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) = 10;
+    }
+    else if ( mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) < -10) {
+        mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) = -10;
+    }
+    mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightAil) =  mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil);
 
-    mDataMaps.at(ControlsData)->at(LeftAil) += RollCorr;
-    if(mDataMaps.at(ControlsData)->at(LeftAil) > 10) {
-        mDataMaps.at(ControlsData)->at(LeftAil) = 10;
+    mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) += -1*PitchCorr;
+    if( mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) > 8) {
+        mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) = 8;
     }
-    else if (mDataMaps.at(ControlsData)->at(LeftAil) < -10) {
-        mDataMaps.at(ControlsData)->at(LeftAil) = -10;
+    else if ( mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) < -8) {
+        mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) = -8;
     }
-    mDataMaps.at(ControlsData)->at(RightAil) = mDataMaps.at(ControlsData)->at(LeftAil);
+    mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftElev) = mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev);
 
-    mDataMaps.at(ControlsData)->at(RightElev) += -1*PitchCorr;
-    if(mDataMaps.at(ControlsData)->at(RightElev) > 8) {
-        mDataMaps.at(ControlsData)->at(RightElev) = 8;
-    }
-    else if (mDataMaps.at(ControlsData)->at(RightElev) < -8) {
-        mDataMaps.at(ControlsData)->at(RightElev) = -8;
-    }
-    mDataMaps.at(ControlsData)->at(LeftElev) = mDataMaps.at(ControlsData)->at(RightElev);
+    IPCns::IPC::unlock();
 }
 
 void Guidance::Log(double* p, int n, int c) {
@@ -290,30 +317,61 @@ void Guidance::SetRoute() {
     //if (mWaypoints[0].empty()) {
         std::vector<double> lats;
         std::vector<double> longs;
-        double lat = mDataMaps.at(DerivedData)->at(Latitude);
-        double lng = mDataMaps.at(DerivedData)->at(Longitude);
+        double lat =  mVariables.telemetry.latitude;
+        double lng =  mVariables.telemetry.longitude;
 
 
         srand(time(NULL));
 
         double lat1 = lat -0.1 + ((double)(rand() % 2)/10);
-        lats.push_back(lat1);
         double lng1 = lng -0.1 +((double)(rand() % 2)/10);
-        longs.push_back(lng1);
+        Waypoint w1(lat1, lng1);
+        mVariables.mRoute->addWaypoint(w1);
 
         double lat2 = lat1 -0.1 +((double)(rand() % 2)/10);
-        lats.push_back(lat2);
         double lng2 = lng1 -0.1 +((double)(rand() % 2)/10);
-        longs.push_back(lng2);
+        Waypoint w2(lat2, lng2);
+        mVariables.mRoute->addWaypoint(w2);
 
         double lat3 = lat2 -0.1 +((double)(rand() % 2)/10);
-        lats.push_back(lat3);
         double lng3 = lng2 -0.1 +((double)(rand() % 2)/10);
-        longs.push_back(lng3);
+        Waypoint w3(lat3, lng3);
+        mVariables.mRoute->addWaypoint(w3);
 
-        mWaypoints[0] = lats;
-        mWaypoints[1] = longs;
-
-        LNAVmode = RouteL;
+        mVariables.autopilotSettings.LNAVmode = RouteL;
     //}
+}
+
+
+void Guidance::DebugChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
+    switch(mode) {
+        case HDGselect:
+            mVariables.autopilotSettings.LNAVmode = mode;
+            mVariables.autopilotSettings.HDG = value;
+            break;
+        default:
+            break;
+    }
+}
+
+void Guidance::DebugChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
+    switch(mode) {
+        case Vspeed:
+            mVariables.autopilotSettings.VNAVmode = mode;
+            mVariables.autopilotSettings.VSPD = value;
+            break;
+        case ALThold:
+            mVariables.autopilotSettings.VNAVmode = mode;
+            break;
+        case LVLCHNG:
+            mVariables.autopilotSettings.VNAVmode = mode;
+            mVariables.autopilotSettings.ALT = value;
+            break;
+        default:
+            break;
+    }
+}
+
+void Guidance::DebugStartRouteGeneration() {
+    SetRoute();
 }
