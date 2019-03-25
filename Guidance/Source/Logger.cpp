@@ -16,6 +16,13 @@ Logger::Logger() {
     GetConsoleScreenBufferInfo(mConsole, &mScreenBufferInfo);
     mCells = mScreenBufferInfo.dwSize.X * mScreenBufferInfo.dwSize.Y;
     FillConsoleOutputAttribute(mConsole, mScreenBufferInfo.wAttributes, mCells, tl, &mWritten);
+    system("mode 80,200");   //Set mode to ensure window does not exceed buffer size
+    SMALL_RECT WinRect = {0, 0, 80, 200};   //New dimensions for window in 8x12 pixel chars
+    SMALL_RECT* WinSize = &WinRect;
+    SetConsoleWindowInfo(mConsole, true, WinSize);   //Set new size for windo
+    GetConsoleScreenBufferInfo(mConsole, &mScreenBufferInfo);
+    mCells = mScreenBufferInfo.dwSize.X * mScreenBufferInfo.dwSize.Y;
+    FillConsoleOutputAttribute(mConsole, mScreenBufferInfo.wAttributes, mCells, tl, &mWritten);
 }
 
 void Logger::registerLoggable(UAV::Loggable *loggable) {
@@ -25,13 +32,19 @@ void Logger::registerLoggable(UAV::Loggable *loggable) {
 void Logger::logConsole() {
     clock_t temp;
     temp = clock();
+    if (temp > tRefill + 5000) {
+        COORD tl = {0, 0};
+        FillConsoleOutputCharacter(mConsole, ' ', mCells, tl, &mWritten);
+        tRefill = temp;
+    }
     if (temp > t) {
         if (i > mLoggableVec.size() - 1) {
             i = 0;
             COORD tl = {0, 0};
             SetConsoleCursorPosition(mConsole, tl);
+
         }
-        //FillConsoleOutputCharacter(mConsole, ' ', mCells, tl, &mWritten);
+
         if (!mLoggableVec.empty()) {
             if (mLoggableVec[i]->getLogInfo() != nullptr) {
                 std::cout << mLoggableVec[i]->mName << std::endl;

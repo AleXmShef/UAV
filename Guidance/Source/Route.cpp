@@ -10,8 +10,11 @@ using namespace UAV;
 Route* Route::mInstance = nullptr;
 
 Route* Route::GetInstance() {
-    if (mInstance == nullptr)
+    if (mInstance == nullptr) {
         mInstance = new Route();
+        mInstance->mName = "Route Info";
+        Logger::GetInstance()->registerLoggable(mInstance);
+    }
     return mInstance;
 }
 
@@ -20,11 +23,11 @@ bool Route::isEmpty() {
 }
 
 void Route::addWaypoint(UAV::Waypoint waypoint) {
-    //if (mWaypoints.empty())
+    if (mWaypoints.empty())
         mWaypoints.push_back(waypoint);
-    //else if(!(mWaypoints[(mWaypoints.size()-1)] == waypoint))
-        //mWaypoints.push_back(waypoint);
-    //calculateDistances();
+    else if(!(mWaypoints[(mWaypoints.size()-1)] == waypoint))
+        mWaypoints.push_back(waypoint);
+    calculateDistances();
 }
 
 Waypoint Route::getActiveWaypoint() {
@@ -53,7 +56,7 @@ void Route::removeWaypoint(int removeAtIndex) {
 void Route::toNextWaypoint() {
     if(mWaypoints.size() >= 1)
         mWaypoints.erase(mWaypoints.begin());
-    //calculateDistances();
+    calculateDistances();
 }
 
 void Route::directTo(int toAtIndex) {
@@ -75,6 +78,8 @@ void Route::calculateDistances() {
     totalDistance = 0;
     if (mWaypoints.size() >= 2) {
         for (int i = 0; i < mWaypoints.size() - 1; i++) {
+            if(pairedDistance.empty() || pairedDistance.size() == i + 1)
+                pairedDistance.push_back(0);
             pairedDistance[i] = calculateDistanceBetweenTwoWaypoints(mWaypoints[i], mWaypoints[i+1]);
             totalDistance += pairedDistance[i];
         }
@@ -82,6 +87,9 @@ void Route::calculateDistances() {
 }
 
 std::map<std::string, double>* Route::getLogInfo() {
-
+    auto tmap = new std::map<std::string, double>;
+    tmap->insert({"Total distance", totalDistance});
+    tmap->insert({"Total waypoints", mWaypoints.size()});
+    return tmap;
 }
 

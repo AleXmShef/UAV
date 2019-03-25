@@ -50,7 +50,9 @@ int main() {
                 break;
             case 5:
                 mGuidance->DebugStartRouteGeneration();
+                break;
             default:
+                flag = 0;
                 break;
         }
     }

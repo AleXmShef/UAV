@@ -25,7 +25,7 @@ namespace UAV {
         double SPD = 100;
     };
 
-    class Guidance {
+    class Guidance: public Loggable {
         enum PIDdesc{PitchPIDpipe, RollPIDpipe, LVLchngPIDpipe, HDGselectPIDpipe};
         enum DataMaps{DerivedData, ControlsData};
         struct Telemetry {
@@ -99,6 +99,7 @@ namespace UAV {
         void DebugChangeAutopilotLNAVMode(LNAVmodes mode, double value);
         void DebugChangeAutopilotVNAVMode(VNAVmodes mode, double value);
         void DebugStartRouteGeneration();
+        std::map<std::string, double>* getLogInfo() override;
     protected:
         Variables mVariables;
         Guidance();
