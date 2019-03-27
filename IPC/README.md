@@ -1,6 +1,6 @@
 InterProcess Communication Library
 ***
-A small library written on C++ using <boost> to allow autopilot testing within X-Plane application
+A small library written on C++ using ***boost*** to allow autopilot testing within X-Plane application
     
 Basically contains 1 class with 2 public static methods:
 
