@@ -6,6 +6,7 @@
 #include "XPLMProcessing.h"
 #include "XPLMGraphics.h"
 #include "XPLMMenus.h"
+#include "XPLMMap.h"
 #include "Guidance.h"
 #include <string.h>
 #include "stdio.h"
@@ -55,6 +56,9 @@ int					dummy_wheel_handler(XPLMWindowID in_window_id, int x, int y, int wheel, 
 void				dummy_key_handler(XPLMWindowID in_window_id, char key, XPLMKeyFlags flags, char virtual_key, void * in_refcon, int losing_focus) { }
 float DataUpdateCallback(float inElapsedSinceLastCall, float inElapsedSinceFlightLoop, int inCounter, void* inRefcon);
 void MyMenuCallback(void* inMenuRef, void* inItemRef);
+void MyMapCreatedCallback(const char* mapIdentifier, void* refcon);
+void MyMapIconDrawingCallback(XPLMMapLayerID inLayer, const float* inMapBoundsLeftTopRightBottom, float zoomRatio, float mapUnitsPerUserInterfaceUnit,
+XPLMMapStyle mapStyle, XPLMMapProjectionID projection, void* inRefcon);
 void* PFDMenuItem;
 void* SwitchControlsMenuItem;
 
@@ -109,6 +113,8 @@ PLUGIN_API int XPluginStart(
 
     XCOM::Guidance::GetInstance();
     XPLMRegisterFlightLoopCallback(DataUpdateCallback, -1.0, NULL);
+
+    XPLMRegisterMapCreationHook(MyMapCreatedCallback, NULL);
 
     //register menu
     //register window for menu
@@ -385,3 +391,28 @@ void MyMenuCallback(void* inMenuRef, void* inItemRef) {
         XCOM::Guidance::GetInstance()->SwitchControls();
     }
 }
+
+void MyMapCreatedCallback(const char* mapIdentifier, void* refcon) {
+    XPLMCreateMapLayer_t st;
+    st.mapToCreateLayerIn = XPLM_MAP_USER_INTERFACE;
+    st.layerType = xplm_MapLayer_Markings;
+    st.willBeDeletedCallback = NULL;
+    st.prepCacheCallback = NULL;
+    st.drawCallback = NULL;
+    st.iconCallback = MyMapIconDrawingCallback;
+    st.labelCallback = NULL;
+    st.showUiToggle = 0;
+    st.layerName = "Idi nahui";
+    st.refcon = NULL;
+    st.structSize = sizeof(st);
+
+    XPLMMapLayerID myMapID = XPLMCreateMapLayer(&st);
+};
+
+void MyMapIconDrawingCallback(XPLMMapLayerID inLayer, const float* inMapBoundsLeftTopRightBottom, float zoomRatio, float mapUnitsPerUserInterfaceUnit,
+                              XPLMMapStyle mapStyle, XPLMMapProjectionID projection, void* inRefcon) {
+    float mapX, mapY;
+    XPLMMapProject(projection, XCOM::Guidance::GetInstance()->GetDataref(WaypointLAT), XCOM::Guidance::GetInstance()->GetDataref(WaypointLONG), &mapX, &mapY);
+    XPLMDrawMapIconFromSheet(inLayer, "E:/XPlane11/Resources/bitmaps/interface/star.png", 0, 0, 1, 1, mapX, mapY, xplm_MapOrientation_Map, 0,
+            inMapBoundsLeftTopRightBottom[2]-inMapBoundsLeftTopRightBottom[0]);
+};

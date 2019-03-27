@@ -21,7 +21,7 @@ Guidance::Guidance() {
     mODataRefs->insert({Longitude, XPLMFindDataRef("sim/flightmodel/position/longitude")});        //longitude
     mODataRefs->insert({Pitch, XPLMFindDataRef("sim/flightmodel/position/true_theta")});           //pitch
     mODataRefs->insert({Roll, XPLMFindDataRef("sim/flightmodel/position/true_phi")});              //roll
-    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/true_phi")});              //heading
+    mODataRefs->insert({Heading, XPLMFindDataRef("sim/flightmodel/position/true_psi")});              //heading
     mODataRefs->insert({Altitude, XPLMFindDataRef("sim/flightmodel/position/elevation")});            //heading
     mODataRefs->insert({Velocity, XPLMFindDataRef("sim/flightmodel/position/indicated_airspeed")});            //heading
     mODataRefs->insert({PitchAoA, XPLMFindDataRef("sim/flightmodel/position/alpha")});            //heading

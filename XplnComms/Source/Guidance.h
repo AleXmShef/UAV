@@ -18,6 +18,7 @@ namespace XCOM {
         void Update();
         void SwitchControls();
         ~Guidance();
+        float GetDataref(SimDataEnum at){return mOutputMap->at(at);};
 
     private:
         Guidance();
