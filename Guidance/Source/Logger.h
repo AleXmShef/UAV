@@ -20,6 +20,7 @@ namespace UAV {
         std::vector<Loggable*> mLoggableVec;
         static Logger* mInstance;
         clock_t t = 0;
+        clock_t tRefill = 0;
         int i = 0;
 
         CONSOLE_SCREEN_BUFFER_INFO mScreenBufferInfo;

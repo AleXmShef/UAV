@@ -13,7 +13,8 @@ Guidance::Guidance() {
 Guidance* Guidance::GetInstance() {
     if(mInstance==nullptr) {
         mInstance = new Guidance();
-        return mInstance;
+        mInstance->mName = "Core Guidance";
+        Logger::GetInstance()->registerLoggable(mInstance);
     }
     return mInstance;
 }
@@ -229,11 +230,11 @@ void Guidance::UpdateGuidance() {
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[0] = (mVariables.telemetry.roll);
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[1] = (mVariables.telemetry.rollAngularVelocity);
 
-    //Logger::GetInstance()->logConsole();
+    Logger::GetInstance()->logConsole();
 
-     UpdateControls(mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr);
-     double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
-     Log(arr, 2, 0);
+    UpdateControls(mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr);
+//    double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
+//    Log(arr, 2, 0);
 
 }
 
@@ -374,4 +375,18 @@ void Guidance::DebugChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
 
 void Guidance::DebugStartRouteGeneration() {
     SetRoute();
+}
+
+std::map<std::string, double>* Guidance::getLogInfo() {
+    auto tmap = new std::map<std::string, double>;
+    tmap->insert({"Current autopilot LNAV mode", mVariables.autopilotSettings.LNAVmode});
+    tmap->insert({"Current autopilot VNAV mode", mVariables.autopilotSettings.VNAVmode});
+    tmap->insert({"Heading", mVariables.telemetry.heading});
+    tmap->insert({"Altitude", mVariables.telemetry.altitudeM});
+    tmap->insert({"Speed", mVariables.telemetry.IAS});
+    tmap->insert({"Pitch", mVariables.telemetry.pitch});
+    tmap->insert({"Roll", mVariables.telemetry.roll});
+    tmap->insert({"Mass", mVariables.telemetry.massCurrent});
+    tmap->insert({"Time per cycle", mVariables.timePassed});
+    return tmap;
 }
