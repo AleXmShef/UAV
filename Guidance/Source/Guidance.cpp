@@ -63,9 +63,7 @@ void Guidance::Init() {
     mVariables.telemetry.mDataMaps.insert({ControlsData, IPCns::IPC::findData(ptr2, SHRDINPUT_NAME)});     //Inverted
 
     mVariables.mRoute = Route::GetInstance();
-    //mWaypoints.resize(2);
-//    mWaypoints[0].resize(5);
-//    mWaypoints[1].resize(5);
+
     mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe).resize(2);
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe).resize(2);
 
@@ -76,10 +74,6 @@ void Guidance::Init() {
 
     IPCns::IPC::unlock();
 
-    //UpdateTelemetry();
-
-//    mVariables.autopilotSettings.HDG = mVariables.telemetry.heading;
-//    mVariables.autopilotSettings.VSPD = mVariables.telemetry.verticalVelocityFPM;
 }
 
 void Guidance::Update() {
@@ -137,15 +131,11 @@ void Guidance::UpdateGuidance() {
 
     UpdateTelemetry();
 
-    //Get elapsed time since last iteration
-
     double Flift = mVariables.telemetry.massCurrent*(9.81+mVariables.telemetry.verticalAccelereation);
 
-    //Init target values
     double DesiredVerticalVelocity = 0;
     double DesiredAccCenter = 0;
 
-    //See what do we need to do depending on an autopilot setup
     switch(mVariables.autopilotSettings.LNAVmode) {
         case RouteL: {
             if(mVariables.mRoute->isEmpty()) {
@@ -174,7 +164,6 @@ void Guidance::UpdateGuidance() {
             mVariables.telemetry.mDataMaps.at(DerivedData)->at(WaypointLAT) = mVariables.mRoute->getActiveWaypoint().getLocation()[0];
         }
         case HDGselect: {
-            //Get desired angular velocity -> calculate desired AccCenter
             double HDGerror = mVariables.autopilotSettings.HDG;
             if( mVariables.autopilotSettings.HDG - mVariables.telemetry.heading > 180) {
                 HDGerror = mVariables.telemetry.heading - (360 - ( mVariables.autopilotSettings.HDG- mVariables.telemetry.heading));
@@ -233,16 +222,12 @@ void Guidance::UpdateGuidance() {
     Logger::GetInstance()->logConsole();
 
     UpdateControls(mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr);
-//    double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
-//    Log(arr, 2, 0);
-
 }
 
 void Guidance::CalculateControls() {
 
     mVariables.controlCalculation.pitchCorr = mVariables.controlCalculation.mPIDpipelines.at(PitchPIDpipe)->Calculate( mVariables.controlCalculation.desiredPitch, mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe))/500;
     mVariables.controlCalculation.rollCorr = mVariables.controlCalculation.mPIDpipelines.at(RollPIDpipe)->Calculate( mVariables.controlCalculation.desiredRoll, mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe))/500;
-    //Sleep(1);
 }
 
 void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
