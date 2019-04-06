@@ -343,7 +343,6 @@ void Guidance::SetRoute() {
     //}
 }
 
-
 void Guidance::DebugChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
     switch(mode) {
         case HDGselect:
