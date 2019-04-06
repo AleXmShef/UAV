@@ -24,10 +24,23 @@ PIDPipeline::PIDPipeline(std::vector<PID*>* PIDs) {
     _pids = PIDs;
 }
 
+PIDPipeline::PIDPipeline(UAV::PID *pid) {
+    _pids = new std::vector<PID*>;
+    _pids->push_back(pid);
+}
+
 double PIDPipeline::Calculate(double setpoint, std::vector<double> errs) {
     double result = setpoint;
     for(int i = 0; i < _pids->size(); i++) {
         result = (*_pids)[i]->calculate(result, errs[i]);
+    }
+    return result;
+}
+
+double PIDPipeline::Calculate(double setpoint, double error) {
+    double result = setpoint;
+    for(int i = 0; i < _pids->size(); i++) {
+        result = (*_pids)[i]->calculate(result, error);
     }
     return result;
 }
