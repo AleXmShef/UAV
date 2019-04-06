@@ -8,56 +8,39 @@
 
 using namespace UAV;
 
-bool flag = 1;
-
-void loop2(Guidance* mGuidance) {
-
-    while(flag) {
-        mGuidance->CalculateControls();
-    }
-}
-
-void loop1(Guidance* mGuidance) {
-    while(flag) {
-        mGuidance->Update();
-    }
-}
+bool flag = true;
 
 int main() {
     Guidance* mGuidance = Guidance::GetInstance();
-    std::thread MyThread1(loop1, mGuidance);
-    Sleep(3);
-    std::thread MyThread2(loop2, mGuidance);
+    mGuidance->Run();
     while(flag) {
         int a;
         std::cin >> a;
         int b;
         switch(a) {
             case 1:
-                flag = 0;
+                mGuidance->Stop();
+                flag = false;
                 break;
             case 2: //Switch to VSPD
                 std::cin >> b;
-                mGuidance->DebugChangeAutopilotVNAVMode(Vspeed, b);
+                mGuidance->_debug_ChangeAutopilotVNAVMode(Vspeed, b);
                 break;
             case 3:
                 std::cin >> b;
-                mGuidance->DebugChangeAutopilotLNAVMode(HDGselect, b);
+                mGuidance->_debug_ChangeAutopilotLNAVMode(HDGselect, b);
                 break;
             case 4:
                 std::cin >> b;
-                mGuidance->DebugChangeAutopilotVNAVMode(LVLCHNG, b);
+                mGuidance->_debug_ChangeAutopilotVNAVMode(LVLCHNG, b);
                 break;
             case 5:
-                mGuidance->DebugStartRouteGeneration();
+                mGuidance->_debug_StartRouteGeneration();
                 break;
             default:
-                flag = 0;
                 break;
         }
     }
-    MyThread1.join();
-    MyThread2.join();
 
     return 0;
 }

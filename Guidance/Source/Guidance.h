@@ -86,6 +86,8 @@ namespace UAV {
 
             Route* mRoute = nullptr;
 
+            std::vector<std::thread*> threadArray;
+
             float phiForControlsDebug = 0;
             clock_t clockPassed = 0;
             double timePassed = 0;
@@ -93,27 +95,38 @@ namespace UAV {
 
     public:
         static Guidance* GetInstance();
-        void Update();
-        void SetRoute();
-        void CalculateControls();
-        void DebugChangeAutopilotLNAVMode(LNAVmodes mode, double value);
-        void DebugChangeAutopilotVNAVMode(VNAVmodes mode, double value);
-        void DebugStartRouteGeneration();
-        std::map<std::string, double>* getLogInfo() override;
-    protected:
-        Variables mVariables;
-        Guidance();
-        void Log(double* p, int n, int c);
-        void Init();
-        clock_t t = 0;
 
+        void Run();
+        void Stop();
+
+        void _debug_ChangeAutopilotLNAVMode(LNAVmodes mode, double value);
+        void _debug_ChangeAutopilotVNAVMode(VNAVmodes mode, double value);
+        void _debug_StartRouteGeneration();
+
+        std::map<std::string, double>* getLogInfo() override;
+
+    protected:
+        void _th_UpdateGuidance();
+        void _th_CalculateControls();
+        void _th_UpdateControls();
+
+
+        Guidance();
+
+        void Log(double* p, int n, int c);  ///Fair Enough
+        void Init();
         void UpdateTelemetry();
         void UpdateGuidance();
-        void UpdateControls(double PitchCorr, double RollCorr);
+        void CalculateControls();
+        void UpdateControls();
 
+        void SetRoute();
         double GetCl(double Pitch);
         double GetPitch(double Cl);
 
+    protected:
+        Variables mVariables;
+        clock_t t = 0;
         static Guidance* mInstance;
     };
 }

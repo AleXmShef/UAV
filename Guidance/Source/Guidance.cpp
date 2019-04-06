@@ -63,9 +63,7 @@ void Guidance::Init() {
     mVariables.telemetry.mDataMaps.insert({ControlsData, IPCns::IPC::findData(ptr2, SHRDINPUT_NAME)});     //Inverted
 
     mVariables.mRoute = Route::GetInstance();
-    //mWaypoints.resize(2);
-//    mWaypoints[0].resize(5);
-//    mWaypoints[1].resize(5);
+
     mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe).resize(2);
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe).resize(2);
 
@@ -73,17 +71,7 @@ void Guidance::Init() {
     IPCns::IPC::lock();
     mVariables.telemetry.mDataMaps.at(DerivedData)->at(ControlOverride) = 1;
     mVariables.telemetry.mDataMaps.at(DerivedData)->at(ControlSrfcOverride) = 1;
-
     IPCns::IPC::unlock();
-
-    //UpdateTelemetry();
-
-//    mVariables.autopilotSettings.HDG = mVariables.telemetry.heading;
-//    mVariables.autopilotSettings.VSPD = mVariables.telemetry.verticalVelocityFPM;
-}
-
-void Guidance::Update() {
-    UpdateGuidance();
 }
 
 void Guidance::UpdateTelemetry() {
@@ -136,8 +124,6 @@ void Guidance::UpdateTelemetry() {
 void Guidance::UpdateGuidance() {
 
     UpdateTelemetry();
-
-    //Get elapsed time since last iteration
 
     double Flift = mVariables.telemetry.massCurrent*(9.81+mVariables.telemetry.verticalAccelereation);
 
@@ -231,8 +217,6 @@ void Guidance::UpdateGuidance() {
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[1] = (mVariables.telemetry.rollAngularVelocity);
 
     Logger::GetInstance()->logConsole();
-
-    UpdateControls(mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr);
 //    double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
 //    Log(arr, 2, 0);
 
@@ -245,7 +229,7 @@ void Guidance::CalculateControls() {
     //Sleep(1);
 }
 
-void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
+void Guidance::UpdateControls() {
 
     //For testing purposes
 //    phi+=0.001;
@@ -255,6 +239,10 @@ void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
 //    mDataMaps.at(ControlsData)->at(RightAil) = RollCorr;     //Up
 //    mDataMaps.at(ControlsData)->at(LeftElev) = PitchCorr;     //Up
 //    mDataMaps.at(ControlsData)->at(RightElev) = PitchCorr;    //Up
+
+    double RollCorr = mVariables.controlCalculation.rollCorr;
+    double PitchCorr = mVariables.controlCalculation.pitchCorr;
+
     IPCns::IPC::lock();
 
     mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftAil) += RollCorr;
@@ -276,6 +264,8 @@ void Guidance::UpdateControls(double PitchCorr, double RollCorr) {
     mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftElev) = mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev);
 
     IPCns::IPC::unlock();
+
+    Sleep(1);
 }
 
 void Guidance::Log(double* p, int n, int c) {
@@ -290,8 +280,6 @@ void Guidance::Log(double* p, int n, int c) {
         DWORD written, cells = s.dwSize.X * s.dwSize.Y;
         //FillConsoleOutputCharacter(console, ' ', cells, tl, &written);
         FillConsoleOutputAttribute(console, s.wAttributes, cells, tl, &written);
-
-        //get base
 
         SetConsoleCursorPosition(console, tl);
 
@@ -315,12 +303,11 @@ double Guidance::GetPitch(double Cl) {
 }
 
 void Guidance::SetRoute() {
-    //if (mWaypoints[0].empty()) {
+
         std::vector<double> lats;
         std::vector<double> longs;
         double lat =  mVariables.telemetry.latitude;
         double lng =  mVariables.telemetry.longitude;
-
 
         srand(time(NULL));
 
@@ -340,10 +327,9 @@ void Guidance::SetRoute() {
         mVariables.mRoute->addWaypoint(w3);
 
         mVariables.autopilotSettings.LNAVmode = RouteL;
-    //}
 }
 
-void Guidance::DebugChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
+void Guidance::_debug_ChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
     switch(mode) {
         case HDGselect:
             mVariables.autopilotSettings.LNAVmode = mode;
@@ -354,7 +340,7 @@ void Guidance::DebugChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
     }
 }
 
-void Guidance::DebugChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
+void Guidance::_debug_ChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
     switch(mode) {
         case Vspeed:
             mVariables.autopilotSettings.VNAVmode = mode;
@@ -372,7 +358,7 @@ void Guidance::DebugChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
     }
 }
 
-void Guidance::DebugStartRouteGeneration() {
+void Guidance::_debug_StartRouteGeneration() {
     SetRoute();
 }
 
@@ -388,4 +374,40 @@ std::map<std::string, double>* Guidance::getLogInfo() {
     tmap->insert({"Mass", mVariables.telemetry.massCurrent});
     tmap->insert({"Time per cycle", mVariables.timePassed});
     return tmap;
+}
+
+void Guidance::Run() {
+    mVariables.MasterSwitch = true;
+    auto updateThread = new std::thread(&Guidance::_th_UpdateGuidance, this);
+    auto calculateControlsThread = new std::thread(&Guidance::_th_CalculateControls, this);
+    auto updateControlsThread = new std::thread(&Guidance::_th_UpdateControls, this);
+    mVariables.threadArray.push_back(updateThread);
+    mVariables.threadArray.push_back(calculateControlsThread);
+    mVariables.threadArray.push_back(updateControlsThread);
+
+}
+
+void Guidance::Stop() {
+    mVariables.MasterSwitch = false;
+    for(int i = 0; i < mVariables.threadArray.size(); i++) {
+        mVariables.threadArray[i]->join();
+    }
+}
+
+void Guidance::_th_UpdateControls() {
+    while(mVariables.MasterSwitch) {
+        UpdateControls();
+    }
+}
+
+void Guidance::_th_CalculateControls() {
+    while(mVariables.MasterSwitch) {
+        CalculateControls();
+    }
+}
+
+void Guidance::_th_UpdateGuidance() {
+    while(mVariables.MasterSwitch) {
+        UpdateGuidance();
+    }
 }
