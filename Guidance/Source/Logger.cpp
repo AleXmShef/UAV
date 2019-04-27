@@ -19,7 +19,7 @@ Logger::Logger() {
     system("mode 80,200");   //Set mode to ensure window does not exceed buffer size
     SMALL_RECT WinRect = {0, 0, 80, 200};   //New dimensions for window in 8x12 pixel chars
     SMALL_RECT* WinSize = &WinRect;
-    SetConsoleWindowInfo(mConsole, true, WinSize);   //Set new size for windo
+    SetConsoleWindowInfo(mConsole, true, WinSize);   //Set new size for window
     GetConsoleScreenBufferInfo(mConsole, &mScreenBufferInfo);
     mCells = mScreenBufferInfo.dwSize.X * mScreenBufferInfo.dwSize.Y;
     FillConsoleOutputAttribute(mConsole, mScreenBufferInfo.wAttributes, mCells, tl, &mWritten);

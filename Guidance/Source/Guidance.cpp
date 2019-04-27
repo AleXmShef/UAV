@@ -384,7 +384,6 @@ void Guidance::Run() {
     mVariables.threadArray.push_back(updateThread);
     mVariables.threadArray.push_back(calculateControlsThread);
     mVariables.threadArray.push_back(updateControlsThread);
-
 }
 
 void Guidance::Stop() {

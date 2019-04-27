@@ -10,7 +10,31 @@ using namespace UAV;
 
 bool flag = true;
 
+void _debug_sharedMemoryInit() {     //flag to override control surfaces
+
+    //Initialize data maps
+    shared_memory_object::remove(SHRDMEM_NAME);
+    shared_memory_object::remove("mtx");
+    IPCns::IPC::GetInstance();
+    IPCns::IPCSharedMap* mOutputMap;
+    IPCns::IPCSharedMap* mInputMap;
+    mOutputMap = IPCns::IPC::registerData(mOutputMap, SHRDOUTPUT_NAME);
+    mInputMap = IPCns::IPC::registerData(mInputMap, SHRDINPUT_NAME);
+
+    //FUCKING ENUMS
+    for(int i = 0; i < ControlSrfcOverride + 1; i++) {
+        mOutputMap->insert(std::pair<const int, float>(i, 0));
+    }
+
+    for(int i = 0; i < Rudder + 1; i++) {
+        mInputMap->insert(std::pair<const int, float>(i, 0));
+    }
+}
+
 int main() {
+    //DEBUG
+    _debug_sharedMemoryInit();
+    //---
     Guidance* mGuidance = Guidance::GetInstance();
     mGuidance->Run();
     while(flag) {
@@ -22,7 +46,7 @@ int main() {
                 mGuidance->Stop();
                 flag = false;
                 break;
-            case 2: //Switch to VSPD
+            case 2:
                 std::cin >> b;
                 mGuidance->_debug_ChangeAutopilotVNAVMode(Vspeed, b);
                 break;
@@ -47,7 +71,5 @@ int main() {
 
 /*TODO:
  * PID properties loading from xml
- * Refactor PID Pipelines
- * Coordinate system
- * Waypoint guidance
+ * Coordinate system conversion from spherical to planar
  * */

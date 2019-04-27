@@ -110,15 +110,17 @@ namespace UAV {
         void _th_CalculateControls();
         void _th_UpdateControls();
 
+        void UpdateTelemetry();
+        void UpdateGuidance();
+        void CalculateControls();
+        void UpdateControls();
+
 
         Guidance();
 
         void Log(double* p, int n, int c);  ///Fair Enough
         void Init();
-        void UpdateTelemetry();
-        void UpdateGuidance();
-        void CalculateControls();
-        void UpdateControls();
+
 
         void SetRoute();
         double GetCl(double Pitch);
