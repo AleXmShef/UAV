@@ -59,6 +59,9 @@ int main() {
                 mGuidance->_debug_ChangeAutopilotVNAVMode(LVLCHNG, b);
                 break;
             case 5:
+                mGuidance->_debug_ToggleAutopilotATarm();
+                break;
+            case 6:
                 mGuidance->_debug_StartRouteGeneration();
                 break;
             default:

@@ -22,6 +22,7 @@ namespace UAV {
         clock_t t = 0;
         clock_t tRefill = 0;
         int i = 0;
+        int k = 0;
 
         CONSOLE_SCREEN_BUFFER_INFO mScreenBufferInfo;
         HANDLE mConsole;

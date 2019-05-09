@@ -44,6 +44,11 @@ void Logger::logConsole() {
             SetConsoleCursorPosition(mConsole, tl);
 
         }
+//        else if (i % 3 == 0 && i != 0) {
+//            k++;
+//            COORD t1 = {(short)k, 0};
+//            SetConsoleCursorPosition(mConsole, t1);
+//        }
 
         if (!mLoggableVec.empty()) {
             if (mLoggableVec[i]->getLogInfo() != nullptr) {

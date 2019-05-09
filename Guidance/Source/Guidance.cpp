@@ -23,6 +23,7 @@ void Guidance::Init() {
     //Register PID Pipelines
     auto pitchPids = new std::vector<PID*>;
     auto rollPids = new std::vector<PID*>;
+    auto throttlePids = new std::vector<PID*>;
 
     auto pitchAngVelPID = new PID("Pitch Angular Velocity PID", 1, -1, 0.4, 0.5, 0);
     auto pitchCorrPID = new PID("Pitch Control Surfaces PID", 1, -1, 0.7, 0.5, 0.01);
@@ -34,13 +35,20 @@ void Guidance::Init() {
     rollPids->push_back(rollAngVelPID);
     rollPids->push_back(rollCorrPID);
 
+    auto throttleVelPID = new PID("Throttle Acceleration PID", 10, -10, 0.4, 0.5, 0);
+    auto throttleCorrPID = new PID("Throttle Control Lever PID", 0.5, -0.5, 0.4, 0.5, 0);
+    throttlePids->push_back(throttleVelPID);
+    throttlePids->push_back(throttleCorrPID);
+
     auto HDGselectPID = new PID("Heading Angular Velocity PID", 3, -3, 0.1, 0.2, 0);
     auto LVLchngPID = new PID("Vertical Speed PID", 800, -800, 4, 1.5, 0);
 
     auto pitchPIDpipeline = new PIDPipeline(pitchPids);
     auto rollPIDpipeline = new PIDPipeline(rollPids);
+    auto throttlePIDpipeline = new PIDPipeline(throttlePids);
     mVariables.controlCalculation.mPIDpipelines.insert({PitchPIDpipe, pitchPIDpipeline});
     mVariables.controlCalculation.mPIDpipelines.insert({RollPIDpipe, rollPIDpipeline});
+    mVariables.controlCalculation.mPIDpipelines.insert({ThrottlePIDpipe, throttlePIDpipeline});
 
     auto HDGselectPIDpipeline = new PIDPipeline(HDGselectPID);
     mVariables.controlCalculation.mPIDpipelines.insert({HDGselectPIDpipe, HDGselectPIDpipeline});
@@ -226,6 +234,7 @@ void Guidance::CalculateControls() {
 
     mVariables.controlCalculation.pitchCorr = mVariables.controlCalculation.mPIDpipelines.at(PitchPIDpipe)->Calculate( mVariables.controlCalculation.desiredPitch, mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe))/500;
     mVariables.controlCalculation.rollCorr = mVariables.controlCalculation.mPIDpipelines.at(RollPIDpipe)->Calculate( mVariables.controlCalculation.desiredRoll, mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe))/500;
+    mVariables.controlCalculation.throttleCorr = mVariables.controlCalculation.mPIDpipelines.at(ThrottlePIDpipe)->Calculate(mVariables.autopilotSettings.SPD, mVariables.telemetry.IAS)/1000;
     //Sleep(1);
 }
 
@@ -262,6 +271,9 @@ void Guidance::UpdateControls() {
         mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev) = -8;
     }
     mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftElev) = mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev);
+
+    if(mVariables.autopilotSettings.ATarm)
+        mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) += mVariables.controlCalculation.throttleCorr;
 
     IPCns::IPC::unlock();
 
@@ -356,6 +368,13 @@ void Guidance::_debug_ChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value)
         default:
             break;
     }
+}
+
+void Guidance::_debug_ToggleAutopilotATarm() {
+    if (mVariables.autopilotSettings.ATarm) {
+        mVariables.autopilotSettings.ATarm = false;
+    } else
+        mVariables.autopilotSettings.ATarm = true;
 }
 
 void Guidance::_debug_StartRouteGeneration() {

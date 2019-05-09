@@ -18,6 +18,7 @@ namespace UAV {
     struct AutopilotSettings {
         LNAVmodes LNAVmode = HDGselect;
         VNAVmodes VNAVmode = Vspeed;
+        bool ATarm = false;
 
         double HDG = 0;
         double ALT = 1000;
@@ -26,7 +27,7 @@ namespace UAV {
     };
 
     class Guidance: public Loggable {
-        enum PIDdesc{PitchPIDpipe, RollPIDpipe, LVLchngPIDpipe, HDGselectPIDpipe};
+        enum PIDdesc{PitchPIDpipe, RollPIDpipe, ThrottlePIDpipe, LVLchngPIDpipe, HDGselectPIDpipe};
         enum DataMaps{DerivedData, ControlsData};
         struct Telemetry {
             std::map<DataMaps, IPCns::IPCSharedMap*> mDataMaps;
@@ -72,6 +73,7 @@ namespace UAV {
 
             double pitchCorr = 0;
             double rollCorr = 0;
+            double throttleCorr = 0;
             double desiredPitch = 0;
             double desiredRoll = 0;
         };
@@ -101,6 +103,7 @@ namespace UAV {
 
         void _debug_ChangeAutopilotLNAVMode(LNAVmodes mode, double value);
         void _debug_ChangeAutopilotVNAVMode(VNAVmodes mode, double value);
+        void _debug_ToggleAutopilotATarm();
         void _debug_StartRouteGeneration();
 
         std::map<std::string, double>* getLogInfo() override;
