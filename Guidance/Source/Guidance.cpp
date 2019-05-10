@@ -7,7 +7,6 @@ using namespace UAV;
 Guidance* Guidance::mInstance = nullptr;
 
 Guidance::Guidance() {
-    Init();
 }
 
 Guidance* Guidance::GetInstance() {
@@ -15,12 +14,14 @@ Guidance* Guidance::GetInstance() {
         mInstance = new Guidance();
         mInstance->mName = "Core Guidance";
         Logger::GetInstance()->registerLoggable(mInstance);
+        mInstance->Init();
     }
     return mInstance;
 }
 
 void Guidance::Init() {
     //Register PID Pipelines
+    Logger::GetInstance()->logIntoMainLogFile(this, "Test");
     auto pitchPids = new std::vector<PID*>;
     auto rollPids = new std::vector<PID*>;
 
@@ -217,9 +218,6 @@ void Guidance::UpdateGuidance() {
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[1] = (mVariables.telemetry.rollAngularVelocity);
 
     Logger::GetInstance()->logConsole();
-//    double arr[2] = {mVariables.controlCalculation.pitchCorr,  mVariables.controlCalculation.rollCorr};
-//    Log(arr, 2, 0);
-
 }
 
 void Guidance::CalculateControls() {
@@ -388,12 +386,14 @@ void Guidance::Run() {
 
 void Guidance::Stop() {
     mVariables.MasterSwitch = false;
+    Logger::GetInstance()->logIntoMainLogFile(NULL, "Terminate");
     if(!mVariables.threadArray.empty()) {
         for (int i = 0; i < mVariables.threadArray.size(); i++) {
             mVariables.threadArray[i]->join();
         }
         mVariables.threadArray.clear();
     }
+
 }
 
 void Guidance::_th_UpdateControls() {
