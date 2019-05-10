@@ -388,8 +388,11 @@ void Guidance::Run() {
 
 void Guidance::Stop() {
     mVariables.MasterSwitch = false;
-    for(int i = 0; i < mVariables.threadArray.size(); i++) {
-        mVariables.threadArray[i]->join();
+    if(!mVariables.threadArray.empty()) {
+        for (int i = 0; i < mVariables.threadArray.size(); i++) {
+            mVariables.threadArray[i]->join();
+        }
+        mVariables.threadArray.clear();
     }
 }
 
