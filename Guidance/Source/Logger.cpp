@@ -19,14 +19,28 @@ Logger::Logger() {
     system("mode 80,200");   //Set mode to ensure window does not exceed buffer size
     SMALL_RECT WinRect = {0, 0, 80, 200};   //New dimensions for window in 8x12 pixel chars
     SMALL_RECT* WinSize = &WinRect;
-    SetConsoleWindowInfo(mConsole, true, WinSize);   //Set new size for window
+    SetConsoleWindowInfo(mConsole, true, WinSize);   //Set new size for windo
     GetConsoleScreenBufferInfo(mConsole, &mScreenBufferInfo);
     mCells = mScreenBufferInfo.dwSize.X * mScreenBufferInfo.dwSize.Y;
     FillConsoleOutputAttribute(mConsole, mScreenBufferInfo.wAttributes, mCells, tl, &mWritten);
+
+    mMainLogFilePath = LOG_FILES_PATH;
+    mMainLogFilePath += MAIN_LOG_FILE_NAME;
+    mMainLogFileStream.open(mMainLogFilePath, std::ios::trunc);
+    time_t rawtime;
+    time(&rawtime);
+    mMainLogFileStream << "Program started at " << ctime(&rawtime);
+    mMainLogFileStream.close();
 }
 
 void Logger::registerLoggable(UAV::Loggable *loggable) {
     mLoggableVec.push_back(loggable);
+    mLoggableVecType.push_back(ConsoleLog);
+}
+
+void Logger::registerLoggable(UAV::Loggable *loggable, UAV::LogType logtype) {
+    mLoggableVec.push_back(loggable);
+    mLoggableVecType.push_back(logtype);
 }
 
 void Logger::logConsole() {
@@ -51,14 +65,19 @@ void Logger::logConsole() {
 //        }
 
         if (!mLoggableVec.empty()) {
-            if (mLoggableVec[i]->getLogInfo() != nullptr) {
-                std::cout << mLoggableVec[i]->mName << std::endl;
-                auto tMap = mLoggableVec[i]->getLogInfo();
-                std::map<std::string, double>::iterator j;
-                for (j = tMap->begin(); j != tMap->end(); j++) {
-                    std::cout << j->first << ": " << j->second<< std::endl;
+            if (mLoggableVecType[i] == ConsoleLog || mLoggableVecType[i] == CombinedLog) {
+                if (mLoggableVec[i]->getLogInfo() != nullptr) {
+                    std::cout << mLoggableVec[i]->mName << std::endl;
+                    auto tMap = mLoggableVec[i]->getLogInfo();
+                    std::map<std::string, double>::iterator j;
+                    for (j = tMap->begin(); j != tMap->end(); j++) {
+                        std::cout << j->first << ": " << j->second << std::endl;
+                    }
+                    delete (tMap);
                 }
-                delete (tMap);
+            }
+            if (mLoggableVecType[i] == FileLog || mLoggableVecType[i] == CombinedLog) {
+                logFile(i);
             }
         }
         std::cout << std::endl;
@@ -66,4 +85,32 @@ void Logger::logConsole() {
     }
 
     t = temp;
+}
+
+void Logger::logFile(int i) {
+
+}
+
+void Logger::logIntoMainLogFile(Loggable* loggable, std::string logString) {
+    if(loggable == NULL && logString == "Terminate") {
+        time_t rawtime;
+        time(&rawtime);
+        mMainLogFileStream.open(mMainLogFilePath, std::ios::out | std::ios::app);
+        mMainLogFileStream << "Program ended at " << ctime(&rawtime);
+        mMainLogFileStream.close();
+    }
+    mMainLogFileStream.open(mMainLogFilePath, std::ios::out | std::ios::app);
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer [80];
+    time (&rawtime);
+    timeinfo = localtime (&rawtime);
+    strftime (buffer,80,"%X",timeinfo);
+    puts (buffer);
+    mMainLogFileStream << buffer << " " << loggable->mName << ": " << logString << "\n";
+    mMainLogFileStream.close();
+}
+
+Logger::~Logger() {
+    //mMainLogFileStream.close();
 }

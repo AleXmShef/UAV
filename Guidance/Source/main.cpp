@@ -44,7 +44,7 @@ int main() {
         switch(a) {
             case 1:
                 mGuidance->Stop();
-                flag = false;
+                //flag = false;
                 break;
             case 2:
                 std::cin >> b;
@@ -63,6 +63,13 @@ int main() {
                 break;
             case 6:
                 mGuidance->_debug_StartRouteGeneration();
+                break;
+            case 6:
+                mGuidance->Run();
+                break;
+            case 0:
+                mGuidance->Stop();
+                flag = false;
                 break;
             default:
                 break;
