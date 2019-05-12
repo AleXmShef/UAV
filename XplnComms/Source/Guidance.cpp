@@ -74,39 +74,44 @@ void Guidance::Update() {
 
     //Update flight controls
     //See mIDatarefsTypes for switch reference
-    auto arr = new float[56];
-    for(int i = 0; i < 56; i++) {
-        arr[i] = 0;
-    }
-    for (int j = 0; j < 6; j++) {
-        switch (j) {
-            case Throttle:
-                XPLMSetDataf(mIDataRefs->at(Throttle), mInputMap->at(Throttle));
-                break;
-            case LeftAil:
-                arr[0] = mInputMap->at(LeftAil);
-                XPLMSetDataf(mIDataRefs->at(LeftAil), arr[0]);
-                break;
-            case RightAil:
-                arr[0] = mInputMap->at(RightAil);
-                XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
-                break;
-            case LeftElev:
-                arr[0] = mInputMap->at(LeftElev);
-                XPLMSetDataf(mIDataRefs->at(LeftElev), arr[0]);
-                break;
-            case RightElev:
-                arr[0] = mInputMap->at(RightElev);
-                XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
-                break;
-            case Rudder:
-                arr[0] = mInputMap->at(Rudder);
-                XPLMSetDataf(mIDataRefs->at(Rudder), arr[0]);
-                break;
-            default:
-                break;
+    if(mOutputMap->at(ControlSrfcOverride) == 1 && mOutputMap->at(ControlOverride) == 1) {
+        auto arr = new float[56];
+        for (int i = 0; i < 56; i++) {
+            arr[i] = 0;
         }
+        for (int j = 0; j < 6; j++) {
+            switch (j) {
+                case Throttle: {
+                    float *arr2 = new float[8];
+                    arr2[0] = mInputMap->at(Throttle);
+                    XPLMSetDatavf(mIDataRefs->at(Throttle), arr2, 0, 1);
+                    break;
+                }
+                case LeftAil:
+                    arr[0] = mInputMap->at(LeftAil);
+                    XPLMSetDataf(mIDataRefs->at(LeftAil), arr[0]);
+                    break;
+                case RightAil:
+                    arr[0] = mInputMap->at(RightAil);
+                    XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
+                    break;
+                case LeftElev:
+                    arr[0] = mInputMap->at(LeftElev);
+                    XPLMSetDataf(mIDataRefs->at(LeftElev), arr[0]);
+                    break;
+                case RightElev:
+                    arr[0] = mInputMap->at(RightElev);
+                    XPLMSetDataf(mIDataRefs->at(RightAil), arr[0]);
+                    break;
+                case Rudder:
+                    arr[0] = mInputMap->at(Rudder);
+                    XPLMSetDataf(mIDataRefs->at(Rudder), arr[0]);
+                    break;
+                default:
+                    break;
+            }
 
+        }
     }
 
     //Update flags
