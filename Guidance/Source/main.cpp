@@ -64,7 +64,7 @@ int main() {
             case 6:
                 mGuidance->_debug_StartRouteGeneration();
                 break;
-            case 6:
+            case 7:
                 mGuidance->Run();
                 break;
             case 0:
