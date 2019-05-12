@@ -96,8 +96,53 @@ void Logger::logConsole() {
     t = temp;
 }
 
-void Logger::logIntoCustomFile(std::string fileName, UAV::Loggable *loggable, std::string logString) {
+void Logger::registerCustomFileLogging(std::string fileName, UAV::CustomFileLogType logType,
+                                       std::__cxx11::string (*logger)(void), int timeInterval) {
+    if(mCustomLogFileLogTypes.find(fileName) == mCustomLogFileLogTypes.end()) {
+        mCustomLogFileLogTypes.insert({fileName, logType});
+        mCustomLogFileLoggerFuncs.insert({fileName, logger});
+        mCustomLogFileTimeIntervals.insert({fileName, timeInterval});
+    }
+    std::string fpath = LOG_FILES_PATH;
+    fpath += fileName;
+    auto mfstream = new std::ofstream;
+    mfstream->open(fpath, std::ios::trunc);
+    mfstream->close();
+}
 
+void Logger::logCustomFiles() {
+    std::map<std::string, CustomFileLogType>::iterator logTypeIter;
+    std::map<std::string, std::string(*)(void)>::iterator logFuncIter;
+    std::map<std::string, int>::iterator timeIntervalIter;
+    logFuncIter = mCustomLogFileLoggerFuncs.begin();
+    timeIntervalIter = mCustomLogFileTimeIntervals.begin();
+    for (logTypeIter = mCustomLogFileLogTypes.begin(); logTypeIter != mCustomLogFileLogTypes.end(); logTypeIter++) {
+        if (timeIntervalIter->second == -1) {
+            std::string fpath = LOG_FILES_PATH;
+            fpath += logTypeIter->first;
+            auto mfstream = new std::ofstream;
+            mfstream->open(fpath, std::ios::out | std::ios::app);
+            std::string ostr = logFuncIter->second();
+            switch (logTypeIter->second) {
+                case TimeStamp: {
+                    time_t rawtime;
+                    struct tm *timeinfo;
+                    char buffer[80];
+                    time(&rawtime);
+                    timeinfo = localtime(&rawtime);
+                    strftime(buffer, 80, "%X", timeinfo);
+                    puts(buffer);
+                    (*mfstream) << buffer << ostr << std::endl;
+                }
+                case Clear:
+                    break;
+                default:
+                    break;
+            }
+            logFuncIter++;
+            timeIntervalIter++;
+        }
+    }
 }
 
 void Logger::logIntoMainLogFile(Loggable* loggable, std::string logString) {
@@ -116,7 +161,7 @@ void Logger::logIntoMainLogFile(Loggable* loggable, std::string logString) {
     timeinfo = localtime (&rawtime);
     strftime (buffer,80,"%X",timeinfo);
     puts (buffer);
-    mMainLogFileStream << buffer << " " << loggable->mName << ": " << logString << "\n";
+    mMainLogFileStream << buffer << " [" << loggable->mName << "]: " << logString << "\n";
     mMainLogFileStream.close();
 }
 

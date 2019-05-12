@@ -23,6 +23,7 @@ bool Route::isEmpty() {
 }
 
 void Route::addWaypoint(UAV::Waypoint waypoint) {
+    Logger::GetInstance()->logIntoMainLogFile(this, "Adding a waypoint to the route");
     if (mWaypoints.empty())
         mWaypoints.push_back(waypoint);
     else if(!(mWaypoints[(mWaypoints.size()-1)] == waypoint))
@@ -54,6 +55,7 @@ void Route::removeWaypoint(int removeAtIndex) {
 }
 
 void Route::toNextWaypoint() {
+    Logger::GetInstance()->logIntoMainLogFile(this, "Moving to the next waypoint in the route");
     if(mWaypoints.size() >= 1)
         mWaypoints.erase(mWaypoints.begin());
     calculateDistances();
@@ -75,7 +77,6 @@ double Route::calculateDistanceBetweenTwoWaypoints(UAV::Waypoint waypoint1, UAV:
 }
 
 void Route::calculateDistances() {
-    totalDistance = 0;
     if (mWaypoints.size() >= 2) {
         for (int i = 0; i < mWaypoints.size() - 1; i++) {
             if(pairedDistance.empty() || pairedDistance.size() == i + 1)

@@ -13,6 +13,7 @@ namespace UAV {
 #define MAIN_LOG_FILE_NAME "UavLog.txt"
     class Loggable;
     enum LogType {ConsoleLog, FileLog, CombinedLog};
+    enum CustomFileLogType {TimeStamp, ClockStamp, TimeDelta, Clear};
     class Logger {
     public:
         static Logger* GetInstance();
@@ -20,16 +21,26 @@ namespace UAV {
         void registerLoggable(Loggable* loggable, LogType logtype);
         void logIntoMainLogFile(Loggable* loggable, std::string logString);
         void logConsole();
-        void logIntoCustomFile(std::string fileName, Loggable* loggable, std::string logString);
+        void logCustomFiles();
+        void registerCustomFileLogging(std::string fileName, CustomFileLogType logType, std::string(*logger)(void), int timeInterval);
 
         ~Logger();
     protected:
         Logger();
+
+        static Logger* mInstance;
+
         std::string mMainLogFilePath;
         std::ofstream mMainLogFileStream;
+
+        std::map<std::string, CustomFileLogType> mCustomLogFileLogTypes;
+        std::map<std::string, std::string(*)(void)> mCustomLogFileLoggerFuncs;
+        std::map<std::string, int> mCustomLogFileTimeIntervals;
+
+
         std::vector<Loggable*> mLoggableVec;
         std::vector<LogType> mLoggableVecType;
-        static Logger* mInstance;
+
         clock_t t = 0;
         clock_t tRefill = 0;
         int i = 0;

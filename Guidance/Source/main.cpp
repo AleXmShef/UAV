@@ -43,7 +43,7 @@ int main() {
         int b;
         switch(a) {
             case 1:
-                mGuidance->Stop();
+                mGuidance->Stop(1);
                 //flag = false;
                 break;
             case 2:
@@ -68,7 +68,7 @@ int main() {
                 mGuidance->Run();
                 break;
             case 0:
-                mGuidance->Stop();
+                mGuidance->Stop(2);
                 flag = false;
                 break;
             default:

@@ -15,6 +15,7 @@ Guidance* Guidance::GetInstance() {
         mInstance = new Guidance();
         mInstance->mName = "Core Guidance";
         Logger::GetInstance()->registerLoggable(mInstance);
+        Logger::GetInstance()->registerCustomFileLogging("TelemetryLog.txt", TimeStamp, mInstance->CustomFileTelemetryLog), -1);
         //mInstance->Init();
     }
     return mInstance;
@@ -37,8 +38,8 @@ void Guidance::Init() {
     rollPids->push_back(rollAngVelPID);
     rollPids->push_back(rollCorrPID);
 
-    auto throttleVelPID = new PID("Throttle Acceleration PID", 10, -10, 0.4, 0.5, 0);
-    auto throttleCorrPID = new PID("Throttle Control Lever PID", 0.5, -0.5, 0.4, 0.5, 0);
+    auto throttleVelPID = new PID("Throttle Acceleration PID", 3, -3, 0.2, 0.9, 0);
+    auto throttleCorrPID = new PID("Throttle Control Lever PID", 0.5, -0.5, 0.4, 0.2, 0);
     throttlePids->push_back(throttleVelPID);
     throttlePids->push_back(throttleCorrPID);
 
@@ -60,9 +61,11 @@ void Guidance::Init() {
 
     std::vector<double> PitchAxisErrors;
     std::vector<double> RollAxisErrors;
+    std::vector<double> ThrottleErrors;
 
     mVariables.controlCalculation.mPIDpipelinesErrors.insert({PitchPIDpipe, PitchAxisErrors});
     mVariables.controlCalculation.mPIDpipelinesErrors.insert({RollPIDpipe, RollAxisErrors});
+    mVariables.controlCalculation.mPIDpipelinesErrors.insert({ThrottlePIDpipe, ThrottleErrors});
 
     //Find DataMaps
     IPCns::IPCSharedMap* ptr;
@@ -76,6 +79,7 @@ void Guidance::Init() {
 
     mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe).resize(2);
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe).resize(2);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(ThrottlePIDpipe).resize(2);
 
     //Lock controls
     IPCns::IPC::lock();
@@ -100,12 +104,14 @@ void Guidance::UpdateTelemetry() {
 
     mVariables.telemetry.altitudeM =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Altitude);
     mVariables.telemetry.altitudeF =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Altitude)*3.281;
+
+    mVariables.telemetry.IAsAcceleration = (mVariables.telemetry.mDataMaps.at(DerivedData)->at(Velocity) - mVariables.telemetry.IAS)/mVariables.timePassed;
     mVariables.telemetry.IAS =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Velocity);
 
     mVariables.telemetry.pitchAoA =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(PitchAoA);
     mVariables.telemetry.yawAoA =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(YawAoA);
 
-    //mVariables.telemetry.IAsAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
+
     mVariables.telemetry.verticalAccelereation =  (mVariables.telemetry.mDataMaps.at(DerivedData)->at(VerticalVelocity)/196.85 - mVariables.telemetry.verticalVelocityMPS)/mVariables.timePassed;
     //mVariables.telemetry.lateralAcceleration =  mVariables.telemetry.mDataMaps.at(DerivedData)->at(Latitude);
 
@@ -226,6 +232,9 @@ void Guidance::UpdateGuidance() {
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[0] = (mVariables.telemetry.roll);
     mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe)[1] = (mVariables.telemetry.rollAngularVelocity);
 
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(ThrottlePIDpipe)[0] = (mVariables.telemetry.IAS);
+    mVariables.controlCalculation.mPIDpipelinesErrors.at(ThrottlePIDpipe)[1] = (mVariables.telemetry.IAsAcceleration);
+
     Logger::GetInstance()->logConsole();
 }
 
@@ -233,7 +242,7 @@ void Guidance::CalculateControls() {
 
     mVariables.controlCalculation.pitchCorr = mVariables.controlCalculation.mPIDpipelines.at(PitchPIDpipe)->Calculate( mVariables.controlCalculation.desiredPitch, mVariables.controlCalculation.mPIDpipelinesErrors.at(PitchPIDpipe))/500;
     mVariables.controlCalculation.rollCorr = mVariables.controlCalculation.mPIDpipelines.at(RollPIDpipe)->Calculate( mVariables.controlCalculation.desiredRoll, mVariables.controlCalculation.mPIDpipelinesErrors.at(RollPIDpipe))/500;
-    mVariables.controlCalculation.throttleCorr = mVariables.controlCalculation.mPIDpipelines.at(ThrottlePIDpipe)->Calculate(mVariables.autopilotSettings.SPD, mVariables.telemetry.IAS)/1000;
+    mVariables.controlCalculation.throttleCorr = mVariables.controlCalculation.mPIDpipelines.at(ThrottlePIDpipe)->Calculate(mVariables.autopilotSettings.SPD,mVariables.controlCalculation.mPIDpipelinesErrors.at(ThrottlePIDpipe))/1000;
     //Sleep(1);
 }
 
@@ -322,6 +331,7 @@ double Guidance::GetPitch(double Cl) {
 
 void Guidance::SetRoute() {
 
+        Logger::GetInstance()->logIntoMainLogFile(this, "Generating random route");
         std::vector<double> lats;
         std::vector<double> longs;
         double lat =  mVariables.telemetry.latitude;
@@ -350,6 +360,7 @@ void Guidance::SetRoute() {
 void Guidance::_debug_ChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value) {
     switch(mode) {
         case HDGselect:
+            Logger::GetInstance()->logIntoMainLogFile(this, "Changing LNAV mode to HDG Select");
             mVariables.autopilotSettings.LNAVmode = mode;
             mVariables.autopilotSettings.HDG = value;
             break;
@@ -361,13 +372,16 @@ void Guidance::_debug_ChangeAutopilotLNAVMode(UAV::LNAVmodes mode, double value)
 void Guidance::_debug_ChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value) {
     switch(mode) {
         case Vspeed:
+            Logger::GetInstance()->logIntoMainLogFile(this, "Changing VNAV mode to V Speed");
             mVariables.autopilotSettings.VNAVmode = mode;
             mVariables.autopilotSettings.VSPD = value;
             break;
         case ALThold:
+            Logger::GetInstance()->logIntoMainLogFile(this, "Changing VNAV mode to ALT Hold");
             mVariables.autopilotSettings.VNAVmode = mode;
             break;
         case LVLCHNG:
+            Logger::GetInstance()->logIntoMainLogFile(this, "Changing VNAV mode to LVL Change");
             mVariables.autopilotSettings.VNAVmode = mode;
             mVariables.autopilotSettings.ALT = value;
             break;
@@ -378,9 +392,12 @@ void Guidance::_debug_ChangeAutopilotVNAVMode(UAV::VNAVmodes mode, double value)
 
 void Guidance::_debug_ToggleAutopilotATarm() {
     if (mVariables.autopilotSettings.ATarm) {
+        Logger::GetInstance()->logIntoMainLogFile(this, "Turning AT Arm off");
         mVariables.autopilotSettings.ATarm = false;
-    } else
+    } else {
+        Logger::GetInstance()->logIntoMainLogFile(this, "Turning AT Arm on");
         mVariables.autopilotSettings.ATarm = true;
+    }
 }
 
 void Guidance::_debug_StartRouteGeneration() {
@@ -394,6 +411,7 @@ std::map<std::string, double>* Guidance::getLogInfo() {
     tmap->insert({"Heading", mVariables.telemetry.heading});
     tmap->insert({"Altitude", mVariables.telemetry.altitudeM});
     tmap->insert({"Speed", mVariables.telemetry.IAS});
+    tmap->insert({"Acceleration", mVariables.telemetry.verticalAccelereation});
     tmap->insert({"Pitch", mVariables.telemetry.pitch});
     tmap->insert({"Roll", mVariables.telemetry.roll});
     tmap->insert({"Mass", mVariables.telemetry.massCurrent});
@@ -402,6 +420,7 @@ std::map<std::string, double>* Guidance::getLogInfo() {
 }
 
 void Guidance::Run() {
+    Logger::GetInstance()->logIntoMainLogFile(this, "Starting guidance");
     mVariables.MasterSwitch = true;
     auto updateThread = new std::thread(&Guidance::_th_UpdateGuidance, this);
     auto calculateControlsThread = new std::thread(&Guidance::_th_CalculateControls, this);
@@ -411,14 +430,20 @@ void Guidance::Run() {
     mVariables.threadArray.push_back(updateControlsThread);
 }
 
-void Guidance::Stop() {
-    mVariables.MasterSwitch = false;
-    Logger::GetInstance()->logIntoMainLogFile(NULL, "Terminate");
-    if(!mVariables.threadArray.empty()) {
-        for (int i = 0; i < mVariables.threadArray.size(); i++) {
-            mVariables.threadArray[i]->join();
+void Guidance::Stop(int mode) {
+    if (mode == 1) {
+        Logger::GetInstance()->logIntoMainLogFile(this, "Temporary stopping execution");
+        mVariables.MasterSwitch = false;
+    }
+    else if (mode == 2) {
+        mVariables.MasterSwitch = false;
+        Logger::GetInstance()->logIntoMainLogFile(NULL, "Terminate");
+        if (!mVariables.threadArray.empty()) {
+            for (int i = 0; i < mVariables.threadArray.size(); i++) {
+                mVariables.threadArray[i]->join();
+            }
+            mVariables.threadArray.clear();
         }
-        mVariables.threadArray.clear();
     }
 
 }
@@ -439,4 +464,11 @@ void Guidance::_th_UpdateGuidance() {
     while(mVariables.MasterSwitch) {
         UpdateGuidance();
     }
+}
+
+std::string Guidance::CustomFileTelemetryLog() {
+    std::string ostr;
+    ostr = std::to_string(mVariables.telemetry.heading) + " " + std::to_string(mVariables.telemetry.altitudeF) + " " + std::to_string(mVariables.telemetry.IAS) + " " +
+    std::to_string(mVariables.telemetry.verticalVelocityFPM) + " " + std::to_string(mVariables.telemetry.latitude) + " " + std::to_string(mVariables.telemetry.longitude);
+    return ostr;
 }

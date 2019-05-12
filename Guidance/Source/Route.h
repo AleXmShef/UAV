@@ -27,7 +27,7 @@ namespace UAV {
 
     protected:
         std::vector<Waypoint> mWaypoints;
-        double totalDistance;
+        double totalDistance = 0;
         std::vector<double> pairedDistance;
 
         static Route* mInstance;

@@ -41,7 +41,7 @@ namespace UAV {
 
             double altitudeM;
             double altitudeF;
-            double IAS;         //Indicated Airspeed
+            double IAS = 0;         //Indicated Airspeed
 
             double pitchAoA;
             double yawAoA;
@@ -99,7 +99,7 @@ namespace UAV {
         static Guidance* GetInstance();
 
         void Run();
-        void Stop();
+        void Stop(int mode);
 
         void _debug_ChangeAutopilotLNAVMode(LNAVmodes mode, double value);
         void _debug_ChangeAutopilotVNAVMode(VNAVmodes mode, double value);
@@ -122,6 +122,7 @@ namespace UAV {
         Guidance();
 
         void Log(double* p, int n, int c);  ///Fair Enough
+        std::string CustomFileTelemetryLog();
         void Init();
 
 
