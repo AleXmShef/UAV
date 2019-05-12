@@ -7,6 +7,7 @@ using namespace UAV;
 Guidance* Guidance::mInstance = nullptr;
 
 Guidance::Guidance() {
+    Init();
 }
 
 Guidance* Guidance::GetInstance() {
@@ -14,14 +15,14 @@ Guidance* Guidance::GetInstance() {
         mInstance = new Guidance();
         mInstance->mName = "Core Guidance";
         Logger::GetInstance()->registerLoggable(mInstance);
-        mInstance->Init();
+        //mInstance->Init();
     }
     return mInstance;
 }
 
 void Guidance::Init() {
     //Register PID Pipelines
-    Logger::GetInstance()->logIntoMainLogFile(this, "Test");
+    //Logger::GetInstance()->logIntoMainLogFile(this, "Test");
     auto pitchPids = new std::vector<PID*>;
     auto rollPids = new std::vector<PID*>;
     auto throttlePids = new std::vector<PID*>;

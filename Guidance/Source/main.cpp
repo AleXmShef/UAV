@@ -33,7 +33,7 @@ void _debug_sharedMemoryInit() {     //flag to override control surfaces
 
 int main() {
     //DEBUG
-    _debug_sharedMemoryInit();
+    //_debug_sharedMemoryInit();
     //---
     Guidance* mGuidance = Guidance::GetInstance();
     mGuidance->Run();
