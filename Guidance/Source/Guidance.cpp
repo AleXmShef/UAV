@@ -271,8 +271,15 @@ void Guidance::UpdateControls() {
     }
     mVariables.telemetry.mDataMaps.at(ControlsData)->at(LeftElev) = mVariables.telemetry.mDataMaps.at(ControlsData)->at(RightElev);
 
-    if(mVariables.autopilotSettings.ATarm)
+    if(mVariables.autopilotSettings.ATarm) {
         mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) += mVariables.controlCalculation.throttleCorr;
+        if (mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) > 1) {
+            mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) = 1;
+        }
+        else if (mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) < 0.3) {
+            mVariables.telemetry.mDataMaps.at(ControlsData)->at(Throttle) = 0.3;
+        }
+    }
 
     IPCns::IPC::unlock();
 
