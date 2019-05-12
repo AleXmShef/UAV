@@ -56,22 +56,29 @@ void Logger::logConsole() {
             i = 0;
             COORD tl = {0, 0};
             SetConsoleCursorPosition(mConsole, tl);
-
+            xCoord = 0;
+            yCoord = 0;
         }
-//        else if (i % 3 == 0 && i != 0) {
-//            k++;
-//            COORD t1 = {(short)k, 0};
-//            SetConsoleCursorPosition(mConsole, t1);
-//        }
-
+        if (yCoord > 50) {
+            xCoord+= 30;
+            yCoord = 0;
+            COORD t1 = {(short)xCoord, (short)yCoord};
+            SetConsoleCursorPosition(mConsole, t1);
+        }
         if (!mLoggableVec.empty()) {
             if (mLoggableVecType[i] == ConsoleLog || mLoggableVecType[i] == CombinedLog) {
                 if (mLoggableVec[i]->getLogInfo() != nullptr) {
-                    std::cout << mLoggableVec[i]->mName << std::endl;
+                    yCoord++;
+                    COORD t1 = {(short)xCoord, (short)yCoord};
+                    SetConsoleCursorPosition(mConsole, t1);
+                    std::cout << mLoggableVec[i]->mName;
                     auto tMap = mLoggableVec[i]->getLogInfo();
                     std::map<std::string, double>::iterator j;
                     for (j = tMap->begin(); j != tMap->end(); j++) {
-                        std::cout << j->first << ": " << j->second << std::endl;
+                        yCoord++;
+                        COORD t1 = {(short)xCoord, (short)yCoord};
+                        SetConsoleCursorPosition(mConsole, t1);
+                        std::cout << j->first << ": " << j->second;
                     }
                     delete (tMap);
                 }
@@ -80,7 +87,9 @@ void Logger::logConsole() {
                 //logFile(i);
             }
         }
-        std::cout << std::endl;
+        yCoord++;
+        COORD t1 = {(short)xCoord, (short)yCoord};
+        SetConsoleCursorPosition(mConsole, t1);
         i++;
     }
 

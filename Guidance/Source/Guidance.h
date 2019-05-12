@@ -18,7 +18,7 @@ namespace UAV {
     struct AutopilotSettings {
         LNAVmodes LNAVmode = HDGselect;
         VNAVmodes VNAVmode = Vspeed;
-        bool ATarm = false;
+        bool ATarm = true;
 
         double HDG = 0;
         double ALT = 1000;
