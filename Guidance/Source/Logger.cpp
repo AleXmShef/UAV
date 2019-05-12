@@ -77,7 +77,7 @@ void Logger::logConsole() {
                 }
             }
             if (mLoggableVecType[i] == FileLog || mLoggableVecType[i] == CombinedLog) {
-                logFile(i);
+                //logFile(i);
             }
         }
         std::cout << std::endl;
@@ -87,7 +87,7 @@ void Logger::logConsole() {
     t = temp;
 }
 
-void Logger::logFile(int i) {
+void Logger::logIntoCustomFile(std::string fileName, UAV::Loggable *loggable, std::string logString) {
 
 }
 

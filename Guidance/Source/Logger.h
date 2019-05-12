@@ -20,7 +20,7 @@ namespace UAV {
         void registerLoggable(Loggable* loggable, LogType logtype);
         void logIntoMainLogFile(Loggable* loggable, std::string logString);
         void logConsole();
-        void logFile(int i);
+        void logIntoCustomFile(std::string fileName, Loggable* loggable, std::string logString);
 
         ~Logger();
     protected:
