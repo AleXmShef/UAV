@@ -15,7 +15,7 @@ Guidance::Guidance() {
     mIDataRefs->insert({LeftAil, XPLMFindDataRef("sim/flightmodel/controls/wing2l_ail1def")});     //ailerons
     mIDataRefs->insert({RightAil, XPLMFindDataRef("sim/flightmodel/controls/wing1l_ail1def")});
     mIDataRefs->insert({Rudder, XPLMFindDataRef("sim/flightmodel/controls/vstab1_rud1def")});       //rudderw
-    mIDataRefs->insert({Throttle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro_use")});          //engine throttle
+    mIDataRefs->insert({Throttle, XPLMFindDataRef("sim/flightmodel/engine/ENGN_thro")});          //engine throttle
 
     mODataRefs->insert({Latitude, XPLMFindDataRef("sim/flightmodel/position/latitude")});          //latitude
     mODataRefs->insert({Longitude, XPLMFindDataRef("sim/flightmodel/position/longitude")});        //longitude
